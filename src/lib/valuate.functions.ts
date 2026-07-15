@@ -86,7 +86,7 @@ export const valuateItem = createServerFn({ method: "POST" })
     if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
 
     // Origin / host check to block cross-site scripted abuse.
-    const request = getWebRequest();
+    const request = getRequest();
     const origin = request?.headers.get("origin") ?? request?.headers.get("referer") ?? null;
     const host = request?.headers.get("host") ?? null;
     if (!isAllowedOrigin(origin, host)) {
