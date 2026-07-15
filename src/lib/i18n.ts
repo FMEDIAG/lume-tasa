@@ -1,0 +1,76 @@
+export type Lang = "es" | "en";
+
+export const translations = {
+  es: {
+    appName: "Lume",
+    tagline: "Tasa tus objetos con IA",
+    subtitle:
+      "Sube al menos dos fotos de tu objeto y obtén una tasación estimada con fuentes públicas de todo el mundo.",
+    takePhoto: "Cámara",
+    fromGallery: "Galería",
+    photosCount: (n: number) => `${n} foto${n === 1 ? "" : "s"} añadida${n === 1 ? "" : "s"}`,
+    minPhotos: "Añade al menos 2 fotos para tasar",
+    context: "Contexto opcional (marca, año, estado...)",
+    valuate: "Tasar objeto",
+    valuating: "Analizando y consultando fuentes...",
+    result: "Resultado de la tasación",
+    identification: "Identificación",
+    priceRange: "Rango de precio",
+    confidence: "Confianza",
+    sources: "Fuentes consultadas",
+    notes: "Notas del tasador",
+    saveHistory: "Guardar en historial",
+    saved: "Guardado",
+    viewHistory: "Historial",
+    clear: "Nueva tasación",
+    history: "Historial de tasaciones",
+    empty: "Aún no hay tasaciones guardadas.",
+    back: "Volver",
+    delete: "Eliminar",
+    error: "No se pudo completar la tasación. Inténtalo de nuevo.",
+    language: "Idioma",
+    poweredBy: "Consultando eBay, Wikipedia y otras bases públicas",
+  },
+  en: {
+    appName: "Lume",
+    tagline: "Value your objects with AI",
+    subtitle:
+      "Upload at least two photos of your item and get an estimated valuation using public sources from around the world.",
+    takePhoto: "Camera",
+    fromGallery: "Gallery",
+    photosCount: (n: number) => `${n} photo${n === 1 ? "" : "s"} added`,
+    minPhotos: "Add at least 2 photos to appraise",
+    context: "Optional context (brand, year, condition...)",
+    valuate: "Appraise item",
+    valuating: "Analyzing and querying sources...",
+    result: "Appraisal result",
+    identification: "Identification",
+    priceRange: "Price range",
+    confidence: "Confidence",
+    sources: "Sources consulted",
+    notes: "Appraiser notes",
+    saveHistory: "Save to history",
+    saved: "Saved",
+    viewHistory: "History",
+    clear: "New appraisal",
+    history: "Appraisal history",
+    empty: "No saved appraisals yet.",
+    back: "Back",
+    delete: "Delete",
+    error: "Could not complete the appraisal. Please try again.",
+    language: "Language",
+    poweredBy: "Querying eBay, Wikipedia and other public databases",
+  },
+} as const;
+
+export function useLang(): [Lang, (l: Lang) => void] {
+  if (typeof window === "undefined") return ["es", () => {}];
+  const stored = (localStorage.getItem("lume:lang") as Lang) || "es";
+  return [
+    stored,
+    (l: Lang) => {
+      localStorage.setItem("lume:lang", l);
+      window.dispatchEvent(new Event("lume:lang"));
+    },
+  ];
+}
