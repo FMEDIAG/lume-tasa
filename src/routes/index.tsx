@@ -19,7 +19,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Lume — Tasación de objetos con IA" },
       {
         property: "og:description",
-        content: "Sube fotos y obtén una tasación con fuentes públicas de todo el mundo.",
+        content: "Lume tasa tus objetos por fotografía usando IA y bases de datos públicas como eBay y Wikipedia. Rangos en EUR y USD, ES/EN.",
       },
       { property: "og:type", content: "website" },
     ],
