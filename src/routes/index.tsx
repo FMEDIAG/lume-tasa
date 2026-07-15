@@ -334,7 +334,7 @@ function ResultCard({
   onReset,
   onHistory,
 }: {
-  t: typeof translations["es"];
+  t: (typeof translations)["es"] | (typeof translations)["en"];
   result: Omit<Valuation, "id" | "createdAt">;
   saved: boolean;
   onSave: () => void;
