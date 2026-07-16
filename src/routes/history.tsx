@@ -23,6 +23,7 @@ export const Route = createFileRoute("/history")({
 
 function HistoryPage() {
   const [items, setItems] = useState<Valuation[]>([]);
+  const [openId, setOpenId] = useState<string | null>(null);
   const [lang, setLang] = useState<Lang>("es");
 
   useEffect(() => {
