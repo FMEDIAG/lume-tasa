@@ -1,4 +1,5 @@
 {
+  "id": "/",
   "name": "Lume — Tasación de objetos con IA",
   "short_name": "Lume",
   "description": "Tasa tus objetos por fotografía con IA. Rangos en EUR y USD.",
@@ -12,6 +13,7 @@
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
