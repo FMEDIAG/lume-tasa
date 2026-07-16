@@ -278,6 +278,9 @@ function Index() {
             <p className="mt-6 text-center text-[11px] text-muted-foreground/70">
               {t.poweredBy}
             </p>
+            <p className="mt-2 text-center text-xs font-bold text-muted-foreground/80">
+              ©2026 FMEDIAG - App Lumen
+            </p>
           </section>
         )}
 
