@@ -4,6 +4,8 @@ export const translations = {
   es: {
     appName: "Lume",
     tagline: "Tasa tus objetos con IA",
+    homeHeading: "Lume — Tasa tus objetos con IA",
+    logoAlt: "Lume logo — Tasación de objetos",
     subtitle:
       "Sube al menos dos fotos de tu objeto y obtén una tasación estimada con fuentes públicas de todo el mundo.",
     takePhoto: "Cámara",
@@ -34,6 +36,8 @@ export const translations = {
   en: {
     appName: "Lume",
     tagline: "Value your objects with AI",
+    homeHeading: "Lume — Value your objects with AI",
+    logoAlt: "Lume logo — Object appraisal",
     subtitle:
       "Upload at least two photos of your item and get an estimated valuation using public sources from around the world.",
     takePhoto: "Camera",
