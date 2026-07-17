@@ -160,11 +160,11 @@ function Index() {
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full ring-1 ring-primary/40 shadow-glow">
-              <img src={lumeIcon.url} alt="Lume" className="h-full w-full object-cover" />
+              <img src={lumeIcon.url} alt={t.logoAlt} className="h-full w-full object-cover" />
             </div>
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-gradient-gold">
-                {t.appName}
+                {t.homeHeading}
               </h1>
               <p className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
                 {t.tagline}
