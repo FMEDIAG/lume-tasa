@@ -1,12 +1,30 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, Trash2 } from "lucide-react";
 import {
   deleteValuation,
   getHistory,
   type Valuation,
 } from "@/lib/history";
 import { translations, type Lang } from "@/lib/i18n";
+
+function sourceUrl(source: string, query: string): string {
+  const q = encodeURIComponent(query);
+  const s = source.toLowerCase();
+  if (s.includes("ebay")) return `https://www.ebay.com/sch/i.html?_nkw=${q}`;
+  if (s.includes("wikipedia")) return `https://en.wikipedia.org/wiki/Special:Search?search=${q}`;
+  if (s.includes("catawiki")) return `https://www.catawiki.com/en/search?query=${q}`;
+  if (s.includes("worthpoint")) return `https://www.worthpoint.com/search?q=${q}`;
+  if (s.includes("heritage")) return `https://www.ha.com/search?search=${q}`;
+  if (s.includes("chrono24")) return `https://www.chrono24.com/search/index.htm?query=${q}`;
+  if (s.includes("discogs")) return `https://www.discogs.com/search/?q=${q}`;
+  if (s.includes("scryfall")) return `https://scryfall.com/search?q=${q}`;
+  if (s.includes("tcgplayer")) return `https://www.tcgplayer.com/search/all/product?q=${q}`;
+  if (s.includes("cardmarket")) return `https://www.cardmarket.com/en/Magic/Products/Search?searchString=${q}`;
+  if (s.includes("mtggoldfish")) return `https://www.mtggoldfish.com/q?query_string=${q}`;
+  if (s.includes("pricecharting")) return `https://www.pricecharting.com/search-products?type=videogames&q=${q}`;
+  return `https://www.google.com/search?q=${encodeURIComponent(query + " " + source)}`;
+}
 
 export const Route = createFileRoute("/history")({
   head: () => ({
@@ -152,12 +170,16 @@ function HistoryPage() {
                           </p>
                           <div className="mt-2 flex flex-wrap gap-1.5">
                             {v.sources.map((s, i) => (
-                              <span
+                              <a
                                 key={i}
-                                className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] text-primary"
+                                href={sourceUrl(s, v.title)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] text-primary transition hover:bg-primary/20"
                               >
                                 {s}
-                              </span>
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
                             ))}
                           </div>
                         </div>
