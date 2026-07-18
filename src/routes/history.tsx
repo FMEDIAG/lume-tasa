@@ -170,12 +170,16 @@ function HistoryPage() {
                           </p>
                           <div className="mt-2 flex flex-wrap gap-1.5">
                             {v.sources.map((s, i) => (
-                              <span
+                              <a
                                 key={i}
-                                className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] text-primary"
+                                href={sourceUrl(s, v.title)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] text-primary transition hover:bg-primary/20"
                               >
                                 {s}
-                              </span>
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
                             ))}
                           </div>
                         </div>
