@@ -10,13 +10,13 @@ import lumeIcon from "@/assets/lume-icon.jpg.asset.json";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Lume — Tasación de objetos con IA" },
+      { title: "Lume" },
       {
         name: "description",
         content:
           "Lume tasa tus objetos por fotografía usando IA y bases de datos públicas como eBay y Wikipedia. Rangos en EUR y USD, ES/EN.",
       },
-      { property: "og:title", content: "Lume — Tasación de objetos con IA" },
+      { property: "og:title", content: "Lume" },
       {
         property: "og:description",
         content: "Lume tasa tus objetos por fotografía usando IA y bases de datos públicas como eBay y Wikipedia. Rangos en EUR y USD, ES/EN.",
