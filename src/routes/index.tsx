@@ -152,6 +152,8 @@ function Index() {
   function reset() {
     setPhotos([]);
     setContext("");
+    setCategory("auto");
+    setCondition("unknown");
     setResult(null);
     setError(null);
     setSaved(false);
