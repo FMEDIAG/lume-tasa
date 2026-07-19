@@ -115,6 +115,8 @@ function Index() {
         data: {
           photos: photos.map((p) => ({ dataUrl: p.dataUrl })),
           context,
+          category,
+          condition,
           lang,
         },
       });
