@@ -15,6 +15,8 @@ const PhotoSchema = z.object({
 const InputSchema = z.object({
   photos: z.array(PhotoSchema).min(2).max(6),
   context: z.string().max(500).optional().default(""),
+  category: z.string().max(50).optional().default("auto"),
+  condition: z.string().max(30).optional().default("unknown"),
   lang: z.enum(["es", "en"]).default("es"),
 });
 
