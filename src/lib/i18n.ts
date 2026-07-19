@@ -121,6 +121,9 @@ export const translations = {
     error: "Could not complete the appraisal. Please try again.",
     language: "Language",
     poweredBy: "Querying eBay, Wikipedia and other public databases",
+    detecting: "Detecting category...",
+    suggested: "AI suggestion",
+    applySuggestion: "Apply",
   },
 } as const;
 
