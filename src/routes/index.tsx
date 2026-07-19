@@ -183,6 +183,8 @@ function Index() {
     setResult(null);
     setError(null);
     setSaved(false);
+    setSuggested(null);
+    detectedForRef.current = null;
   }
 
   return (
