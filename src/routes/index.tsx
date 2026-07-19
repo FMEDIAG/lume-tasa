@@ -252,13 +252,45 @@ function Index() {
               </div>
             )}
 
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">
+                  {t.category}
+                </label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full rounded-xl border border-primary/20 bg-input px-3 py-2.5 text-sm text-foreground focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-ring/40"
+                >
+                  {(Object.keys(t.categories) as Array<keyof typeof t.categories>).map((k) => (
+                    <option key={k} value={k}>{t.categories[k]}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">
+                  {t.condition}
+                </label>
+                <select
+                  value={condition}
+                  onChange={(e) => setCondition(e.target.value)}
+                  className="w-full rounded-xl border border-primary/20 bg-input px-3 py-2.5 text-sm text-foreground focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-ring/40"
+                >
+                  {(Object.keys(t.conditions) as Array<keyof typeof t.conditions>).map((k) => (
+                    <option key={k} value={k}>{t.conditions[k]}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             <textarea
               value={context}
               onChange={(e) => setContext(e.target.value)}
               placeholder={t.context}
               rows={2}
-              className="mt-5 w-full resize-none rounded-xl border border-primary/20 bg-input px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-ring/40"
+              className="mt-3 w-full resize-none rounded-xl border border-primary/20 bg-input px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-ring/40"
             />
+
 
             <button
               disabled={!canValuate}
