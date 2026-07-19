@@ -59,6 +59,9 @@ export const translations = {
     error: "No se pudo completar la tasación. Inténtalo de nuevo.",
     language: "Idioma",
     poweredBy: "Consultando eBay, Wikipedia y otras bases públicas",
+    detecting: "Detectando categoría...",
+    suggested: "Sugerida por IA",
+    applySuggestion: "Aplicar",
   },
   en: {
     appName: "Lume",
@@ -118,6 +121,9 @@ export const translations = {
     error: "Could not complete the appraisal. Please try again.",
     language: "Language",
     poweredBy: "Querying eBay, Wikipedia and other public databases",
+    detecting: "Detecting category...",
+    suggested: "AI suggestion",
+    applySuggestion: "Apply",
   },
 } as const;
 

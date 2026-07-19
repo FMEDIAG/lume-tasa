@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Camera, Images, Sparkles, History, Trash2, Save, Check, Globe } from "lucide-react";
 import { valuateItem } from "@/lib/valuate.functions";
+import { detectCategory } from "@/lib/detect-category.functions";
 import { translations, type Lang } from "@/lib/i18n";
 import { saveValuation, type Valuation } from "@/lib/history";
 import lumeIcon from "@/assets/lume-icon.jpg.asset.json";
@@ -92,6 +93,31 @@ function Index() {
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
   const valuate = useServerFn(valuateItem);
+  const detect = useServerFn(detectCategory);
+  const [suggested, setSuggested] = useState<string | null>(null);
+  const [detecting, setDetecting] = useState(false);
+  const detectedForRef = useRef<string | null>(null);
+
+  // Auto-detect category from the first photo when user hasn't chosen one.
+  useEffect(() => {
+    const first = photos[0];
+    if (!first) {
+      setSuggested(null);
+      detectedForRef.current = null;
+      return;
+    }
+    if (detectedForRef.current === first.id) return;
+    if (category !== "auto") return;
+    detectedForRef.current = first.id;
+    setDetecting(true);
+    detect({ data: { dataUrl: first.dataUrl, lang } })
+      .then((r) => {
+        setSuggested(r.category);
+        setCategory((cur) => (cur === "auto" ? r.category : cur));
+      })
+      .catch(() => setSuggested(null))
+      .finally(() => setDetecting(false));
+  }, [photos, category, lang, detect]);
 
   const canValuate = photos.length >= 2 && !loading;
 
@@ -157,6 +183,8 @@ function Index() {
     setResult(null);
     setError(null);
     setSaved(false);
+    setSuggested(null);
+    detectedForRef.current = null;
   }
 
   return (
@@ -266,6 +294,21 @@ function Index() {
                     <option key={k} value={k}>{t.categories[k]}</option>
                   ))}
                 </select>
+                {detecting && (
+                  <p className="mt-1 text-[10px] text-muted-foreground/80">✨ {t.detecting}</p>
+                )}
+                {!detecting && suggested && suggested in t.categories && category !== suggested && (
+                  <button
+                    type="button"
+                    onClick={() => setCategory(suggested)}
+                    className="mt-1 text-[10px] text-primary hover:underline"
+                  >
+                    ✨ {t.suggested}: {t.categories[suggested as keyof typeof t.categories]} — {t.applySuggestion}
+                  </button>
+                )}
+                {!detecting && suggested && category === suggested && (
+                  <p className="mt-1 text-[10px] text-primary/80">✨ {t.suggested}</p>
+                )}
               </div>
               <div>
                 <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">
