@@ -294,6 +294,21 @@ function Index() {
                     <option key={k} value={k}>{t.categories[k]}</option>
                   ))}
                 </select>
+                {detecting && (
+                  <p className="mt-1 text-[10px] text-muted-foreground/80">✨ {t.detecting}</p>
+                )}
+                {!detecting && suggested && suggested in t.categories && category !== suggested && (
+                  <button
+                    type="button"
+                    onClick={() => setCategory(suggested)}
+                    className="mt-1 text-[10px] text-primary hover:underline"
+                  >
+                    ✨ {t.suggested}: {t.categories[suggested as keyof typeof t.categories]} — {t.applySuggestion}
+                  </button>
+                )}
+                {!detecting && suggested && category === suggested && (
+                  <p className="mt-1 text-[10px] text-primary/80">✨ {t.suggested}</p>
+                )}
               </div>
               <div>
                 <label className="mb-1 block text-[11px] uppercase tracking-wider text-muted-foreground">
