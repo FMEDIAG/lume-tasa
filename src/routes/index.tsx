@@ -80,6 +80,8 @@ function Index() {
   const t = translations[lang];
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [context, setContext] = useState("");
+  const [category, setCategory] = useState<string>("auto");
+  const [condition, setCondition] = useState<string>("unknown");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<
     | (Omit<Valuation, "id" | "createdAt" | "thumbnail"> & { thumbnail: string })
