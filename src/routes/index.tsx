@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Camera, Images, Sparkles, History, Trash2, Save, Check, Globe } from "lucide-react";
 import { valuateItem } from "@/lib/valuate.functions";
+import { detectCategory } from "@/lib/detect-category.functions";
 import { translations, type Lang } from "@/lib/i18n";
 import { saveValuation, type Valuation } from "@/lib/history";
 import lumeIcon from "@/assets/lume-icon.jpg.asset.json";
