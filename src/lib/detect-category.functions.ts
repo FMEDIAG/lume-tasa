@@ -90,8 +90,8 @@ export const detectCategory = createServerFn({ method: "POST" })
 
     const system =
       data.lang === "es"
-        ? `Eres un clasificador experto. Mira la foto y elige la categoría más probable del objeto de esta lista EXACTA (usa la clave en inglés): art, cards, coins, stamps, watches, jewelry, electronics, books, toys, vinyl, fashion, sports, other. Devuelve SOLO JSON: {"category":"<clave>","confidence":"low|medium|high"}.`
-        : `You are an expert classifier. Look at the photo and pick the most likely item category from this EXACT list (use the English key): art, cards, coins, stamps, watches, jewelry, electronics, books, toys, vinyl, fashion, sports, other. Return ONLY JSON: {"category":"<key>","confidence":"low|medium|high"}.`;
+        ? `Eres un clasificador experto. Mira la foto y devuelve las 3 categorías más probables del objeto de esta lista EXACTA (usa la clave en inglés): art, cards, coins, stamps, watches, jewelry, electronics, books, toys, vinyl, fashion, sports, other. Devuelve SOLO JSON: {"category":"<mejor_clave>","confidence":<0-100>,"candidates":[{"category":"<clave>","confidence":<0-100>}, ...3 elementos ordenados por confianza descendente]}. Las confidencias deben ser porcentajes enteros y sumar aproximadamente 100.`
+        : `You are an expert classifier. Look at the photo and return the top 3 most likely categories from this EXACT list (use the English key): art, cards, coins, stamps, watches, jewelry, electronics, books, toys, vinyl, fashion, sports, other. Return ONLY JSON: {"category":"<best_key>","confidence":<0-100>,"candidates":[{"category":"<key>","confidence":<0-100>}, ...3 items ordered by descending confidence]}. Confidences are integer percentages and should sum to roughly 100.`;
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
