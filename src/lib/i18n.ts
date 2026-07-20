@@ -62,6 +62,7 @@ export const translations = {
     detecting: "Detectando categoría...",
     suggested: "Sugerida por IA",
     applySuggestion: "Aplicar",
+    candidates: "Candidatas",
   },
   en: {
     appName: "Lume",
