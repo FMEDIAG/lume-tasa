@@ -193,6 +193,8 @@ function Index() {
     setError(null);
     setSaved(false);
     setSuggested(null);
+    setSuggestedConfidence(null);
+    setCandidates([]);
     detectedForRef.current = null;
   }
 
