@@ -98,26 +98,25 @@ function Index() {
   const [detecting, setDetecting] = useState(false);
   const detectedForRef = useRef<string | null>(null);
 
-  // Auto-detect category from the first photo when user hasn't chosen one.
+  // Auto-detect category from the latest photo whenever photos change.
   useEffect(() => {
-    const first = photos[0];
-    if (!first) {
+    const latest = photos[photos.length - 1];
+    if (!latest) {
       setSuggested(null);
       detectedForRef.current = null;
       return;
     }
-    if (detectedForRef.current === first.id) return;
-    if (category !== "auto") return;
-    detectedForRef.current = first.id;
+    if (detectedForRef.current === latest.id) return;
+    detectedForRef.current = latest.id;
     setDetecting(true);
-    detect({ data: { dataUrl: first.dataUrl, lang } })
+    detect({ data: { dataUrl: latest.dataUrl, lang } })
       .then((r) => {
         setSuggested(r.category);
-        setCategory((cur) => (cur === "auto" ? r.category : cur));
+        setCategory(r.category);
       })
       .catch(() => setSuggested(null))
       .finally(() => setDetecting(false));
-  }, [photos, category, lang, detect]);
+  }, [photos, lang, detect]);
 
   const canValuate = photos.length >= 2 && !loading;
 
