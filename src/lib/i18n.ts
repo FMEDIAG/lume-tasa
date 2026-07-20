@@ -125,6 +125,7 @@ export const translations = {
     detecting: "Detecting category...",
     suggested: "AI suggestion",
     applySuggestion: "Apply",
+    candidates: "Candidates",
   },
 } as const;
 
