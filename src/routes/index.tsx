@@ -95,6 +95,8 @@ function Index() {
   const valuate = useServerFn(valuateItem);
   const detect = useServerFn(detectCategory);
   const [suggested, setSuggested] = useState<string | null>(null);
+  const [suggestedConfidence, setSuggestedConfidence] = useState<number | null>(null);
+  const [candidates, setCandidates] = useState<Array<{ category: string; confidence: number }>>([]);
   const [detecting, setDetecting] = useState(false);
   const detectedForRef = useRef<string | null>(null);
 
@@ -103,6 +105,8 @@ function Index() {
     const latest = photos[photos.length - 1];
     if (!latest) {
       setSuggested(null);
+      setSuggestedConfidence(null);
+      setCandidates([]);
       detectedForRef.current = null;
       return;
     }
@@ -112,9 +116,15 @@ function Index() {
     detect({ data: { dataUrl: latest.dataUrl, lang } })
       .then((r) => {
         setSuggested(r.category);
+        setSuggestedConfidence(r.confidence);
+        setCandidates(r.candidates.slice(0, 3));
         setCategory(r.category);
       })
-      .catch(() => setSuggested(null))
+      .catch(() => {
+        setSuggested(null);
+        setSuggestedConfidence(null);
+        setCandidates([]);
+      })
       .finally(() => setDetecting(false));
   }, [photos, lang, detect]);
 
