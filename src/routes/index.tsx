@@ -308,17 +308,45 @@ function Index() {
                 {detecting && (
                   <p className="mt-1 text-[10px] text-muted-foreground/80">✨ {t.detecting}</p>
                 )}
-                {!detecting && suggested && suggested in t.categories && category !== suggested && (
-                  <button
-                    type="button"
-                    onClick={() => setCategory(suggested)}
-                    className="mt-1 text-[10px] text-primary hover:underline"
-                  >
-                    ✨ {t.suggested}: {t.categories[suggested as keyof typeof t.categories]} — {t.applySuggestion}
-                  </button>
-                )}
-                {!detecting && suggested && category === suggested && (
-                  <p className="mt-1 text-[10px] text-primary/80">✨ {t.suggested}</p>
+                {!detecting && suggested && suggested in t.categories && (
+                  <div className="mt-1.5 space-y-1">
+                    <p className="text-[10px] text-primary/80">
+                      ✨ {t.suggested}: {t.categories[suggested as keyof typeof t.categories]}
+                      {suggestedConfidence !== null && (
+                        <span className="ml-1 font-semibold">({Math.round(suggestedConfidence)}%)</span>
+                      )}
+                      {category !== suggested && (
+                        <button
+                          type="button"
+                          onClick={() => setCategory(suggested)}
+                          className="ml-1.5 underline hover:text-primary"
+                        >
+                          {t.applySuggestion}
+                        </button>
+                      )}
+                    </p>
+                    {candidates.length > 1 && (
+                      <div className="flex flex-wrap gap-1">
+                        <span className="text-[10px] text-muted-foreground/70">{t.candidates}:</span>
+                        {candidates.map((c) =>
+                          c.category in t.categories ? (
+                            <button
+                              key={c.category}
+                              type="button"
+                              onClick={() => setCategory(c.category)}
+                              className={`rounded-full border px-1.5 py-0.5 text-[10px] transition ${
+                                category === c.category
+                                  ? "border-primary/60 bg-primary/15 text-primary"
+                                  : "border-primary/20 text-muted-foreground hover:border-primary/40 hover:text-primary"
+                              }`}
+                            >
+                              {t.categories[c.category as keyof typeof t.categories]} {Math.round(c.confidence)}%
+                            </button>
+                          ) : null
+                        )}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
               <div>
