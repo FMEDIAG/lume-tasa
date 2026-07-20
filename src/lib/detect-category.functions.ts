@@ -25,9 +25,15 @@ const InputSchema = z.object({
   lang: z.enum(["es", "en"]).default("es"),
 });
 
+const CandidateSchema = z.object({
+  category: z.enum(CATEGORY_KEYS),
+  confidence: z.number().min(0).max(100),
+});
+
 const OutputSchema = z.object({
   category: z.enum(CATEGORY_KEYS),
-  confidence: z.enum(["low", "medium", "high"]),
+  confidence: z.number().min(0).max(100),
+  candidates: z.array(CandidateSchema).min(1).max(5),
 });
 
 // Reuse a lightweight rate limit (per isolate, best-effort).
