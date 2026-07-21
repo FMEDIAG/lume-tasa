@@ -43,6 +43,7 @@ function HistoryPage() {
   const [items, setItems] = useState<Valuation[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
   const [lang, setLang] = useState<Lang>("es");
+  const [activeTab, setActiveTab] = useState<string>("all");
 
   useEffect(() => {
     const read = () => {
@@ -63,6 +64,12 @@ function HistoryPage() {
   const fmt = (n: number) =>
     new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(n);
 
+  const usedCategories = Array.from(
+    new Set(items.map((v) => (v.category && v.category in t.categories ? v.category : "other")))
+  );
+  const filtered = activeTab === "all" ? items : items.filter((v) => (v.category ?? "other") === activeTab);
+  const allLabel = lang === "es" ? "Todas" : "All";
+
   return (
     <div className="relative min-h-screen">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[400px] bg-[radial-gradient(ellipse_at_top,oklch(0.72_0.2_45/30%),transparent_70%)] blur-3xl" />
@@ -78,11 +85,29 @@ function HistoryPage() {
           <h1 className="text-xl font-semibold text-gradient-gold">{t.history}</h1>
         </header>
 
-        {items.length === 0 ? (
+        {items.length > 0 && (
+          <div className="mt-5 -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+            {[{ key: "all", label: allLabel }, ...usedCategories.map((k) => ({ key: k, label: t.categories[k as keyof typeof t.categories] ?? k }))].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`shrink-0 rounded-full border px-3 py-1.5 text-xs whitespace-nowrap transition ${
+                  activeTab === tab.key
+                    ? "border-primary/60 bg-primary/20 text-primary font-semibold"
+                    : "border-primary/20 bg-background/40 text-muted-foreground hover:text-primary"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {filtered.length === 0 ? (
           <p className="mt-16 text-center text-sm text-muted-foreground">{t.empty}</p>
         ) : (
           <ul className="mt-6 space-y-3">
-            {items.map((v) => {
+            {filtered.map((v) => {
               const isOpen = openId === v.id;
               return (
                 <li key={v.id} className="glass-crystal rounded-2xl p-4">
