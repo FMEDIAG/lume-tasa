@@ -179,6 +179,7 @@ function Index() {
       notes: result.notes,
       sources: result.sources,
       thumbnail: result.thumbnail,
+      category,
     };
     saveValuation(v);
     setSaved(true);
