@@ -11,6 +11,7 @@ export interface Valuation {
   notes: string;
   sources: string[];
   thumbnail: string; // data URL of first photo
+  category?: string;
 }
 
 const KEY = "lume:history:v1";
