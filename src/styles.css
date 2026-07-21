@@ -127,11 +127,13 @@
 @utility glass-crystal {
   background: linear-gradient(
     135deg,
-    oklch(1 0 0 / 8%) 0%,
-    oklch(0.82 0.16 78 / 6%) 100%
+    oklch(1 0 0 / 45%) 0%,
+    oklch(0.96 0.06 90 / 30%) 60%,
+    oklch(0.86 0.10 225 / 25%) 100%
   );
-  backdrop-filter: blur(20px) saturate(160%);
-  border: 1px solid oklch(0.82 0.16 78 / 25%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid oklch(1 0 0 / 55%);
   box-shadow: var(--shadow-crystal);
 }
 
@@ -142,6 +144,7 @@
 @utility shadow-glow {
   box-shadow: var(--shadow-glow);
 }
+
 
 @keyframes shimmer {
   0%,
