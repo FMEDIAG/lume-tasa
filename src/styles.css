@@ -114,7 +114,35 @@
     background-attachment: fixed;
     color: var(--color-foreground);
     font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+    position: relative;
   }
+
+  /* Sun-glow inspired by the lockscreen reference */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        circle at 8% 88%,
+        oklch(1 0.14 90 / 55%) 0%,
+        oklch(0.92 0.16 75 / 25%) 18%,
+        transparent 45%
+      ),
+      radial-gradient(
+        ellipse at 80% 12%,
+        oklch(1 0 0 / 35%) 0%,
+        transparent 55%
+      );
+    z-index: 0;
+  }
+
+  #root, main {
+    position: relative;
+    z-index: 1;
+  }
+
 }
 
 @utility text-gradient-gold {
