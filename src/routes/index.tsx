@@ -6,7 +6,7 @@ import { valuateItem } from "@/lib/valuate.functions";
 import { detectCategory } from "@/lib/detect-category.functions";
 import { translations, type Lang } from "@/lib/i18n";
 import { saveValuation, type Valuation } from "@/lib/history";
-import lumeIcon from "@/assets/lume-icon.jpg.asset.json";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -206,7 +206,7 @@ function Index() {
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full ring-1 ring-primary/40 shadow-glow">
-              <img src={lumeIcon.url} alt={t.logoAlt} className="h-full w-full object-cover" />
+              <img src="/Lumen.jpg" alt={t.logoAlt} className="h-full w-full object-cover" />
             </div>
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-gradient-gold">
