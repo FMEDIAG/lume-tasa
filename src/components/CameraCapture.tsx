@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, X, Check, ZoomIn, ZoomOut } from "lucide-react";
-import type { Lang } from "@/lib/i18n";
+import { X, Check } from "lucide-react";
 
 interface CameraCaptureProps {
   onCapture: (dataUrl: string) => void;
@@ -119,7 +118,6 @@ export function CameraCapture({ onCapture, onClose, t }: CameraCaptureProps) {
         ) : (
           <div className="flex h-full items-center justify-center">
             <div className="text-center text-white">
-              <Camera className="mx-auto h-12 w-12 animate-pulse" />
               <p className="mt-4 text-sm">Iniciando cámara...</p>
             </div>
           </div>
