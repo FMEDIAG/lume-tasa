@@ -118,7 +118,10 @@ function Index() {
         setSuggested(r.category);
         setSuggestedConfidence(r.confidence);
         setCandidates(r.candidates.slice(0, 3));
-        setCategory(r.category);
+        // Only set category if it's not "auto" or if user hasn't manually changed it
+        if (category === "auto") {
+          setCategory(r.category);
+        }
       })
       .catch(() => {
         setSuggested(null);
@@ -126,7 +129,7 @@ function Index() {
         setCandidates([]);
       })
       .finally(() => setDetecting(false));
-  }, [photos, lang, detect]);
+  }, [photos, lang, detect, category]);
 
   const canValuate = photos.length >= 2 && !loading;
 
@@ -166,6 +169,7 @@ function Index() {
 
   function onSave() {
     if (!result) return;
+    // Use category state directly - it's already the selected/detected category
     const v: Valuation = {
       id: crypto.randomUUID(),
       createdAt: Date.now(),
@@ -179,7 +183,7 @@ function Index() {
       notes: result.notes,
       sources: result.sources,
       thumbnail: result.thumbnail,
-      category,
+      category: category !== "auto" ? category : "other",
     };
     saveValuation(v);
     setSaved(true);
