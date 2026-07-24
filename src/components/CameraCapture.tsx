@@ -74,14 +74,35 @@ export function CameraCapture({ onCapture, onClose, t }: CameraCaptureProps) {
     if (!videoTrack) return;
 
     try {
+      const capabilities = (videoTrack as any).getCapabilities?.();
+      const { min = 1, max = 1 } = capabilities?.zoom || {};
+      
+      // Si el dispositivo no soporta 0.6x, usamos escala CSS (zoom-in visual)
+      if (level < min) {
+        if (videoRef.current) {
+          videoRef.current.style.transform = `scale(${1 / level})`;
+          videoRef.current.style.transformOrigin = "center";
+        }
+        setZoom(level);
+        return;
+      }
+
+      // Usar zoom nativo del dispositivo si está disponible
       const constraints: any = {
         advanced: [{ zoom: level }],
       };
       await videoTrack.applyConstraints(constraints);
+      // Limpiar transformación CSS si cambió a nivel soportado
+      if (videoRef.current) {
+        videoRef.current.style.transform = "scale(1)";
+      }
       setZoom(level);
     } catch (err) {
-      // Si el zoom no es soportado, solo cambiamos el estado
-      // pero continuamos funcionando sin zoom real
+      // Si falla, aplicar escala CSS como fallback
+      if (videoRef.current) {
+        videoRef.current.style.transform = `scale(${1 / level})`;
+        videoRef.current.style.transformOrigin = "center";
+      }
       setZoom(level);
     }
   }
@@ -98,7 +119,14 @@ export function CameraCapture({ onCapture, onClose, t }: CameraCaptureProps) {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
+    // Aplicar la misma transformación de zoom al dibujar en canvas
+    ctx.save();
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.scale(1 / zoom, 1 / zoom);
+    ctx.translate(-canvas.width / 2, -canvas.height / 2);
     ctx.drawImage(video, 0, 0);
+    ctx.restore();
+
     const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
     onCapture(dataUrl);
   }
