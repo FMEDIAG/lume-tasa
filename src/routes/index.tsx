@@ -6,7 +6,7 @@ import { valuateItem } from "@/lib/valuate.functions";
 import { detectCategory } from "@/lib/detect-category.functions";
 import { translations, type Lang } from "@/lib/i18n";
 import { saveValuation, type Valuation } from "@/lib/history";
-
+ 
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -206,7 +206,7 @@ function Index() {
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full ring-1 ring-primary/40 shadow-glow">
-              <img src="/Lumen.jpg" alt={t.logoAlt} className="h-full w-full object-cover" />
+              <img src="/Lume.jpg" alt={t.logoAlt} className="h-full w-full object-cover" />
             </div>
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-gradient-gold">
@@ -378,7 +378,7 @@ function Index() {
             <button
               disabled={!canValuate}
               onClick={onValuate}
-              className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-crystal px-6 py-4 text-base font-semibold text-primary-foreground shadow-glow transition disabled:cursor-not-allowed disabled:opacity-40 enabled:hover:scale-[1.01]"
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-crystal px-6 py-4 text-base font-semibold text-primary-foreground shadow-glow transition disabled:opacity-50"
             >
               {loading ? (
                 <>
@@ -444,7 +444,7 @@ function LangToggle({ lang, setLang }: { lang: Lang; setLang: (l: Lang) => void 
 function BackgroundGlow() {
   return (
     <>
-      <div className="pointer-events-none absolute -top-40 left-1/2 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse,oklch(0.72_0.2_45/40%),transparent_70%)] blur-3xl animate-shimmer" />
+      <div className="pointer-events-none absolute -top-40 left-1/2 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-[radial-gradient(ellipse,oklch(0.72_0.2_45/40%),transparent_70%)] blur-3xl" />
       <div className="pointer-events-none absolute bottom-0 right-0 h-[400px] w-[400px] translate-x-1/3 rounded-full bg-[radial-gradient(ellipse,oklch(0.92_0.18_95/25%),transparent_70%)] blur-3xl" />
     </>
   );
