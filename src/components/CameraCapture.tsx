@@ -7,7 +7,7 @@ interface CameraCaptureProps {
   t: Record<string, any>;
 }
 
-type ZoomLevel = 0.6 | 1 | 2;
+type ZoomLevel = 1 | 2;
 
 export function CameraCapture({ onCapture, onClose, t }: CameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -77,7 +77,7 @@ export function CameraCapture({ onCapture, onClose, t }: CameraCaptureProps) {
       const capabilities = (videoTrack as any).getCapabilities?.();
       const { min = 1, max = 1 } = capabilities?.zoom || {};
       
-      // Si el dispositivo no soporta 0.6x, usamos escala CSS (zoom-in visual)
+      // Si el dispositivo no soporta el nivel, usamos escala CSS (zoom-in visual)
       if (level < min) {
         if (videoRef.current) {
           videoRef.current.style.transform = `scale(${1 / level})`;
@@ -131,7 +131,7 @@ export function CameraCapture({ onCapture, onClose, t }: CameraCaptureProps) {
     onCapture(dataUrl);
   }
 
-  const zoomLevels: ZoomLevel[] = [0.6, 1, 2];
+  const zoomLevels: ZoomLevel[] = [1, 2];
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black">
@@ -183,7 +183,6 @@ export function CameraCapture({ onCapture, onClose, t }: CameraCaptureProps) {
           <div className="flex items-center justify-center gap-2">
             {zoomLevels.map((level) => {
               const labels: Record<ZoomLevel, string> = {
-                0.6: "🔍 Macro",
                 1: "1x",
                 2: "2x",
               };
