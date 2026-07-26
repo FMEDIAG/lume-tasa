@@ -61,8 +61,15 @@ function HistoryPage() {
 
   const t = translations[lang];
   const locale = lang === "es" ? "es-ES" : "en-US";
-  const fmt = (n: number) =>
-    new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(n);
+  // ✅ CÓDIGO CORREGIDO
+const fmt = (n: number) => {
+  if (typeof n !== "number" || isNaN(n)) return "0";
+  // Si el valor es menor que 1 (como 0.02 o 0.10), muestra dos decimales
+  if (n < 1) return n.toFixed(2);
+  // Para cantidades grandes (ej. 15€, 120€), redondea a entero normal
+  return Math.round(n).toString();
+};
+
 
   const usedCategories = Array.from(
     new Set(items.map((v) => (v.category && v.category in t.categories ? v.category : "other")))
