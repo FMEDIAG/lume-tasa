@@ -159,31 +159,28 @@ export const valuateItem = createServerFn({ method: "POST" })
       throw new Error("Model did not return valid JSON");
     }
 
-    // --- PROTECCIÓN DE PRECIO MÍNIMO ROBUSTA ---
+        // --- PROTECCIÓN DE PRECIO MÍNIMO APLICADA SIEMPRE ---
     if (typeof parsed === "object" && parsed !== null) {
-      // Función auxiliar para convertir a número válido y forzar mínimo
-      const sanitizePrice = (val: any, minFallback: number) => {
-        if (typeof val === "string") {
-          // Reemplazar coma por punto por si devuelve formato europeo "0,05"
-          val = parseFloat(val.replace(",", "."));
+      const enforceMinimum = (val: any, defaultMin: number) => {
+        let num = typeof val === "string" ? parseFloat(val.replace(",", ".")) : val;
+        // Si no es un número válido o es menor a 0.02, aplicamos el mínimo base de mercado bulk
+        if (typeof num !== "number" || isNaN(num) || num < 0.02) {
+          return defaultMin;
         }
-        if (typeof val !== "number" || isNaN(val) || val <= 0) {
-          return minFallback;
-        }
-        return val;
+        return num;
       };
 
-      parsed.priceEurMin = sanitizePrice(parsed.priceEurMin, 0.02);
-      parsed.priceEurMax = sanitizePrice(parsed.priceEurMax, 0.10);
-      parsed.priceUsdMin = sanitizePrice(parsed.priceUsdMin, 0.02);
-      parsed.priceUsdMax = sanitizePrice(parsed.priceUsdMax, 0.10);
+      parsed.priceEurMin = enforceMinimum(parsed.priceEurMin, 0.02);
+      parsed.priceEurMax = enforceMinimum(parsed.priceEurMax, 0.10);
+      parsed.priceUsdMin = enforceMinimum(parsed.priceUsdMin, 0.02);
+      parsed.priceUsdMax = enforceMinimum(parsed.priceUsdMax, 0.10);
 
-      // Garantizar que el precio máximo nunca sea menor que el mínimo
       if (parsed.priceEurMax < parsed.priceEurMin) parsed.priceEurMax = parsed.priceEurMin;
       if (parsed.priceUsdMax < parsed.priceUsdMin) parsed.priceUsdMax = parsed.priceUsdMin;
     }
 
     return ResultSchema.parse(parsed);
   });
+
 
 
