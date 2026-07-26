@@ -76,31 +76,30 @@ export function CameraCapture({ onCapture, onClose, t }: CameraCaptureProps) {
     try {
       const capabilities = (videoTrack as any).getCapabilities?.();
       const { min = 1, max = 1 } = capabilities?.zoom || {};
-      
-      // Si el dispositivo no soporta el nivel, usamos escala CSS (zoom-in visual)
-      if (level < min) {
+
+      // Si el dispositivo soporta zoom nativo por hardware
+      if (capabilities?.zoom && level >= min && level <= max) {
+        const constraints: any = {
+          advanced: [{ zoom: level }],
+        };
+        await videoTrack.applyConstraints(constraints);
         if (videoRef.current) {
-          videoRef.current.style.transform = `scale(${1 / level})`;
-          videoRef.current.style.transformOrigin = "center";
+          videoRef.current.style.transform = "scale(1)";
         }
         setZoom(level);
         return;
       }
 
-      // Usar zoom nativo del dispositivo si está disponible
-      const constraints: any = {
-        advanced: [{ zoom: level }],
-      };
-      await videoTrack.applyConstraints(constraints);
-      // Limpiar transformación CSS si cambió a nivel soportado
+      // Si no soporta zoom por hardware, aplicamos Zoom Digital vía CSS (Multiplica por el nivel)
       if (videoRef.current) {
-        videoRef.current.style.transform = "scale(1)";
+        videoRef.current.style.transform = `scale(${level})`;
+        videoRef.current.style.transformOrigin = "center";
       }
       setZoom(level);
     } catch (err) {
-      // Si falla, aplicar escala CSS como fallback
+      // Fallback si falla la restricción
       if (videoRef.current) {
-        videoRef.current.style.transform = `scale(${1 / level})`;
+        videoRef.current.style.transform = `scale(${level})`;
         videoRef.current.style.transformOrigin = "center";
       }
       setZoom(level);
@@ -116,18 +115,36 @@ export function CameraCapture({ onCapture, onClose, t }: CameraCaptureProps) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    // Redimensionar para optimizar peso (máximo 1000px de ancho/alto) para no saturar LocalStorage
+    const maxDimension = 1000;
+    let width = video.videoWidth;
+    let height = video.videoHeight;
 
-    // Aplicar la misma transformación de zoom al dibujar en canvas
+    if (width > maxDimension || height > maxDimension) {
+      if (width > height) {
+        height = Math.round((height * maxDimension) / width);
+        width = maxDimension;
+      } else {
+        width = Math.round((width * maxDimension) / height);
+        height = maxDimension;
+      }
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+
     ctx.save();
-    ctx.translate(canvas.width / 2, canvas.height / 2);
-    ctx.scale(1 / zoom, 1 / zoom);
-    ctx.translate(-canvas.width / 2, -canvas.height / 2);
-    ctx.drawImage(video, 0, 0);
+    // Si se aplicó zoom CSS, recortar y escalar el centro del video
+    if (zoom > 1) {
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.scale(zoom, zoom);
+      ctx.translate(-canvas.width / 2, -canvas.height / 2);
+    }
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     ctx.restore();
 
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
+    // Compresión inteligente a 0.75: Mantiene nitidez en sellos/punzones pero reduce el peso a ~150KB
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.75);
     onCapture(dataUrl);
   }
 
@@ -140,7 +157,7 @@ export function CameraCapture({ onCapture, onClose, t }: CameraCaptureProps) {
         {isStreaming ? (
           <video
             ref={videoRef}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover transition-transform duration-200"
             playsInline
           />
         ) : (
@@ -184,7 +201,7 @@ export function CameraCapture({ onCapture, onClose, t }: CameraCaptureProps) {
             {zoomLevels.map((level) => {
               const labels: Record<ZoomLevel, string> = {
                 1: "1x",
-                2: "2x",
+                2: "2x (Macro)",
               };
 
               return (
@@ -221,7 +238,7 @@ export function CameraCapture({ onCapture, onClose, t }: CameraCaptureProps) {
 
           {!supportsZoom && zoom !== 1 && (
             <p className="text-center text-xs text-muted-foreground">
-              ℹ️ Zoom avanzado no disponible / Advanced zoom not available
+              ℹ️ Zoom digital activo / Digital zoom active
             </p>
           )}
         </div>
@@ -232,3 +249,4 @@ export function CameraCapture({ onCapture, onClose, t }: CameraCaptureProps) {
     </div>
   );
 }
+
