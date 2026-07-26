@@ -152,21 +152,38 @@ export const valuateItem = createServerFn({ method: "POST" })
       choices?: Array<{ message?: { content?: string } }>;
     };
     const raw = json.choices?.[0]?.message?.content ?? "{}";
-    let parsed: any;
+        let parsed: any;
     try {
       parsed = JSON.parse(raw);
     } catch {
       throw new Error("Model did not return valid JSON");
     }
 
-    // --- PROTECCIÓN DE PRECIO MÍNIMO ---
+    // --- PROTECCIÓN DE PRECIO MÍNIMO ROBUSTA ---
     if (typeof parsed === "object" && parsed !== null) {
-      if (typeof parsed.priceEurMin === "number" && parsed.priceEurMin <= 0) parsed.priceEurMin = 0.02;
-      if (typeof parsed.priceEurMax === "number" && parsed.priceEurMax <= 0) parsed.priceEurMax = 0.10;
-      if (typeof parsed.priceUsdMin === "number" && parsed.priceUsdMin <= 0) parsed.priceUsdMin = 0.02;
-      if (typeof parsed.priceUsdMax === "number" && parsed.priceUsdMax <= 0) parsed.priceUsdMax = 0.10;
+      // Función auxiliar para convertir a número válido y forzar mínimo
+      const sanitizePrice = (val: any, minFallback: number) => {
+        if (typeof val === "string") {
+          // Reemplazar coma por punto por si devuelve formato europeo "0,05"
+          val = parseFloat(val.replace(",", "."));
+        }
+        if (typeof val !== "number" || isNaN(val) || val <= 0) {
+          return minFallback;
+        }
+        return val;
+      };
+
+      parsed.priceEurMin = sanitizePrice(parsed.priceEurMin, 0.02);
+      parsed.priceEurMax = sanitizePrice(parsed.priceEurMax, 0.10);
+      parsed.priceUsdMin = sanitizePrice(parsed.priceUsdMin, 0.02);
+      parsed.priceUsdMax = sanitizePrice(parsed.priceUsdMax, 0.10);
+
+      // Garantizar que el precio máximo nunca sea menor que el mínimo
+      if (parsed.priceEurMax < parsed.priceEurMin) parsed.priceEurMax = parsed.priceEurMin;
+      if (parsed.priceUsdMax < parsed.priceUsdMin) parsed.priceUsdMax = parsed.priceUsdMin;
     }
 
     return ResultSchema.parse(parsed);
   });
+
 
