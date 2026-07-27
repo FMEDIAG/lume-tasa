@@ -164,12 +164,12 @@ export const valuateItem = createServerFn({ method: "POST" })
       const enforceMinimum = (val: any, defaultMin: number) => {
         let num = typeof val === "string" ? parseFloat(val.replace(",", ".")) : val;
         // Si no es un número válido o es menor a 0.02, aplicamos el mínimo base de mercado bulk
-        if (typeof num !== "number" || isNaN(num) || num < 0.02) {
-          return defaultMin;
-        }
+        if (typeof num !== "number" || isNaN(num) || num < defaultMin) {
+  return defaultMin;
+}
         return num;
       };
-
+// Protección mínima aplicada correctamente (0.02 / 0.10)
       parsed.priceEurMin = enforceMinimum(parsed.priceEurMin, 0.02);
       parsed.priceEurMax = enforceMinimum(parsed.priceEurMax, 0.10);
       parsed.priceUsdMin = enforceMinimum(parsed.priceUsdMin, 0.02);
@@ -178,7 +178,10 @@ export const valuateItem = createServerFn({ method: "POST" })
       if (parsed.priceEurMax < parsed.priceEurMin) parsed.priceEurMax = parsed.priceEurMin;
       if (parsed.priceUsdMax < parsed.priceUsdMin) parsed.priceUsdMax = parsed.priceUsdMin;
     }
-
+// Ejemplo mental:
+// Si parsed.priceEurMin = 0.001 → enforceMinimum lo convierte en 0.02
+// Si parsed.priceEurMax = 0.005 → enforceMinimum lo convierte en 0.10
+// Si priceEurMax < priceEurMin → se igualan
     return ResultSchema.parse(parsed);
   });
 
