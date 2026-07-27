@@ -63,7 +63,7 @@ function HistoryPage() {
   const t = translations[lang];
   const locale = lang === "es" ? "es-ES" : "en-US";
   // ✅ CÓDIGO CORREGIDO
-{formatPrice(result.priceEurMin)}
+{formatPrice(item.priceEurMin)}
 };
 
 
