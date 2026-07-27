@@ -175,10 +175,11 @@ function Index() {
       createdAt: Date.now(),
       title: result.title,
       identification: result.identification,
-      {formatPrice(result.priceEurMin)}
-      {formatPrice(result.priceEurMax)}
-      {formatPrice(result.priceUsdMin)}
-      {formatPrice(result.priceUsdMax)}
+      priceEurMin: result.priceEurMin,
+      priceEurMax: result.priceEurMax,
+      priceUsdMin: result.priceUsdMin,
+      priceUsdMax: result.priceUsdMax,
+
       confidence: result.confidence,
       notes: result.notes,
       sources: result.sources,
