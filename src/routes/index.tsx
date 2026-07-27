@@ -175,7 +175,7 @@ function Index() {
       createdAt: Date.now(),
       title: result.title,
       identification: result.identification,
-      priceEurMin: result.priceEurMin,
+      priceEurMin: item.priceEurMin,
       priceEurMax: result.priceEurMax,
       priceUsdMin: result.priceUsdMin,
       priceUsdMax: result.priceUsdMax,
