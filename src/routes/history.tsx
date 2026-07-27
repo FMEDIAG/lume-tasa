@@ -7,6 +7,7 @@ import {
   type Valuation,
 } from "@/lib/history";
 import { translations, type Lang } from "@/lib/i18n";
+import { formatPrice } from "@/lib/formatPrice";
 
 function sourceUrl(source: string, query: string): string {
   const q = encodeURIComponent(query);
@@ -62,7 +63,7 @@ function HistoryPage() {
   const t = translations[lang];
   const locale = lang === "es" ? "es-ES" : "en-US";
   // ✅ CÓDIGO CORREGIDO
-import { formatPrice } from "@/lib/formatPrice";
+{formatPrice(result.priceEurMin)}
 };
 
 
