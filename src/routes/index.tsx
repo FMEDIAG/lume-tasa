@@ -501,7 +501,7 @@ function ResultCard({
           <PriceCard
             label="EUR"
             symbol="€"
-            min={result.priceEurMin}
+            min={formatPrice(result.priceEurMin)}
             max={result.priceEurMax}
           />
           <PriceCard
