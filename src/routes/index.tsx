@@ -167,18 +167,17 @@ function Index() {
     }
   }
 
- function onSave() {
-  if (!result) return;
-  try {
-    // Generador de ID seguro para cualquier navegador/móvil
-    const id = typeof crypto !== "undefined" && crypto.randomUUID 
-      ? crypto.randomUUID() 
-      : `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+function onSave() {
+  if (!result) {
+    alert("No hay resultado para guardar");
+    return;
+  }
 
+  try {
     const v: Valuation = {
-      id,
+      id: String(Date.now()),
       createdAt: Date.now(),
-      title: result.title || "Sin título",
+      title: result.title || "Objeto tasado",
       identification: result.identification || "",
       priceEurMin: Number(result.priceEurMin) || 0,
       priceEurMax: Number(result.priceEurMax) || 0,
@@ -191,10 +190,15 @@ function Index() {
       category: category && category !== "auto" ? category : "other",
     };
 
-    saveValuation(v);
+    // Guardado directo en localStorage para probar sin intermediarios
+    const currentHistory = JSON.parse(localStorage.getItem("lume:history:v1") || "[]");
+    currentHistory.unshift(v);
+    localStorage.setItem("lume:history:v1", JSON.stringify(currentHistory.slice(0, 20)));
+
     setSaved(true);
+    alert("¡Guardado correctamente en el historial!");
   } catch (err) {
-    console.error("Error al guardar en el historial:", err);
+    alert("Error al guardar: " + String(err));
   }
 }
 
