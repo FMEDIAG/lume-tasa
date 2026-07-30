@@ -167,28 +167,36 @@ function Index() {
     }
   }
 
-  function onSave() {
-    if (!result) return;
-    // Use category state directly - it's already the selected/detected category
-    const v: Valuation = {
-      id: crypto.randomUUID(),
-      createdAt: Date.now(),
-      title: result.title,
-      identification: result.identification,
-      priceEurMin: result.priceEurMin,
-      priceEurMax: result.priceEurMax,
-      priceUsdMin: result.priceUsdMin,
-      priceUsdMax: result.priceUsdMax,
+ function onSave() {
+  if (!result) return;
+  try {
+    // Generador de ID seguro para cualquier navegador/móvil
+    const id = typeof crypto !== "undefined" && crypto.randomUUID 
+      ? crypto.randomUUID() 
+      : `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
-      confidence: result.confidence,
-      notes: result.notes,
-      sources: result.sources,
-      thumbnail: result.thumbnail,
-      category: category !== "auto" ? category : "other",
+    const v: Valuation = {
+      id,
+      createdAt: Date.now(),
+      title: result.title || "Sin título",
+      identification: result.identification || "",
+      priceEurMin: Number(result.priceEurMin) || 0,
+      priceEurMax: Number(result.priceEurMax) || 0,
+      priceUsdMin: Number(result.priceUsdMin) || 0,
+      priceUsdMax: Number(result.priceUsdMax) || 0,
+      confidence: result.confidence || "medium",
+      notes: result.notes || "",
+      sources: Array.isArray(result.sources) ? result.sources : [],
+      thumbnail: result.thumbnail || "",
+      category: category && category !== "auto" ? category : "other",
     };
+
     saveValuation(v);
     setSaved(true);
+  } catch (err) {
+    console.error("Error al guardar en el historial:", err);
   }
+}
 
   function reset() {
     setPhotos([]);
