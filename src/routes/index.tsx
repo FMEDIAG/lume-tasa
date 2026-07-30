@@ -587,7 +587,6 @@ function ResultCard({
     </section>
   );
 }
-// ✅ CÓDIGO CORREGIDO PARA PRICE CARD
 function PriceCard({
   label,
   symbol,
@@ -601,7 +600,6 @@ function PriceCard({
 }) {
   const fmt = (n: number) => {
     if (typeof n !== "number" || isNaN(n)) return "0";
-    // Si es menor a 1 (ej. 0.02€), muestra 2 decimales. Si es mayor, sin decimales.
     return n < 1 
       ? n.toFixed(2) 
       : new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(n);
@@ -618,3 +616,4 @@ function PriceCard({
     </div>
   );
 }
+
