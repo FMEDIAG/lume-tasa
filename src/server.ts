@@ -11,9 +11,14 @@ let serverEntryPromise: Promise<ServerEntry> | undefined;
 
 async function getServerEntry(): Promise<ServerEntry> {
   if (!serverEntryPromise) {
-    serverEntryPromise = import("@tanstack/react-start/server-entry").then(
-      (m) => (m.default ?? m) as ServerEntry,
-    );
+    serverEntryPromise = import("@tanstack/react-start/server-entry")
+      .then((m) => (m.default ?? m) as ServerEntry)
+      .catch((err) => {
+        // Limpia la promesa rechazada para que el próximo intento reintente
+        // la importación, en vez de quedar cacheada para siempre.
+        serverEntryPromise = undefined;
+        throw err;
+      });
   }
   return serverEntryPromise;
 }
@@ -28,6 +33,9 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
   const body = await response.clone().text();
   if (!isH3SwallowedErrorBody(body)) return response;
 
+  // TODO: consumeLastCapturedError() usa un global del módulo. En peticiones
+  // concurrentes, una petición podría consumir el error de otra. Idealmente
+  // aislar con AsyncLocalStorage o pasar el contexto por request.
   console.error(consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`));
   return new Response(renderErrorPage(), {
     status: 500,
