@@ -7,7 +7,7 @@ import { detectCategory } from "@/lib/detect-category.functions";
 import { translations, type Lang } from "@/lib/i18n";
 import { saveValuation, type Valuation } from "@/lib/history";
 import { formatPrice } from "@/lib/formatPrice"; 
-
+//
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
