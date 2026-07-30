@@ -587,7 +587,7 @@ function ResultCard({
     </section>
   );
 }
-
+// ✅ CÓDIGO CORREGIDO PARA PRICE CARD
 function PriceCard({
   label,
   symbol,
@@ -599,17 +599,21 @@ function PriceCard({
   min: number;
   max: number;
 }) {
-  const fmt = (n: number) =>
-    new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(n);
+  const fmt = (n: number) => {
+    if (typeof n !== "number" || isNaN(n)) return "0";
+    // Si es menor a 1 (ej. 0.02€), muestra 2 decimales. Si es mayor, sin decimales.
+    return n < 1 
+      ? n.toFixed(2) 
+      : new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(n);
+  };
+
   return (
     <div className="rounded-2xl border border-primary/30 bg-primary/5 p-3 text-center">
       <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
         {label}
       </p>
       <p className="mt-1 text-lg font-semibold text-gradient-gold">
-        {symbol}
-        {fmt(min)} – {symbol}
-        {fmt(max)}
+        {symbol}{fmt(min)} – {symbol}{fmt(max)}
       </p>
     </div>
   );
