@@ -40,6 +40,13 @@ export const Route = createFileRoute("/history")({
   component: HistoryPage,
 });
 
+const fmt = (n: number) =>
+  typeof n !== "number" || isNaN(n)
+    ? "0"
+    : n < 1
+      ? n.toFixed(2)
+      : new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(n);
+
 function HistoryPage() {
   const [items, setItems] = useState<Valuation[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
