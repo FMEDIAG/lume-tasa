@@ -27,34 +27,42 @@ export function getHistory(): Valuation[] {
   }
 }
 
+function persist(items: Valuation[]) {
+  localStorage.setItem(KEY, JSON.stringify(items));
+  window.dispatchEvent(new Event("lume:history"));
+}
+
 export function saveValuation(v: Valuation) {
   if (typeof window === "undefined") return;
+  const history = getHistory().filter((item) => item.id !== v.id);
+  history.unshift(v);
+
   try {
-    const history = getHistory();
-    
-    // Evitar duplicados por ID
-    const filtered = history.filter((item) => item.id !== v.id);
-    
-    // Añadir al principio de la lista
-    filtered.unshift(v);
-
-    // Mantener un máximo de 30 elementos para no llenar la memoria del móvil
-    const trimmed = filtered.slice(0, 30);
-
-    localStorage.setItem(KEY, JSON.stringify(trimmed));
-    console.log("¡Tasación guardada con éxito!", v);
+    persist(history.slice(0, 30));
   } catch (e) {
     console.error("Error al guardar en localStorage (posiblemente cuota llena):", e);
-    
-    // Si falla por peso de la imagen, intentamos guardar comprimiendo/omitiendo la miniatura
+    // Si falla por peso de las imágenes, guardamos sin miniaturas antiguas
     try {
-      const history = getHistory();
-      const vLight = { ...v, thumbnail: "" }; // Quitar foto si la memoria del teléfono se llena
-      history.unshift(vLight);
-      localStorage.setItem(KEY, JSON.stringify(history.slice(0, 20)));
-    } catch (err) {
-      console.error("No se pudo guardar ni en versión ligera", err);
+      const light = history.slice(0, 20).map((item, i) =>
+        i === 0 ? item : { ...item, thumbnail: "" }
+      );
+      persist(light);
+    } catch {
+      try {
+        persist(history.slice(0, 20).map((item) => ({ ...item, thumbnail: "" })));
+      } catch (err) {
+        console.error("No se pudo guardar ni en versión ligera", err);
+      }
     }
+  }
+}
+
+export function deleteValuation(id: string) {
+  if (typeof window === "undefined") return;
+  try {
+    persist(getHistory().filter((item) => item.id !== id));
+  } catch (e) {
+    console.error("Error al borrar tasación", e);
   }
 }
 
@@ -62,6 +70,7 @@ export function clearHistory() {
   if (typeof window === "undefined") return;
   try {
     localStorage.removeItem(KEY);
+    window.dispatchEvent(new Event("lume:history"));
   } catch (e) {
     console.error("Error al borrar historial", e);
   }
