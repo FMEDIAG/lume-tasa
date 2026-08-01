@@ -393,7 +393,7 @@ function onSave() {
             <button
               disabled={!canValuate}
               onClick={onValuate}
-              className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-crystal px-6 py-4 text-base font-semibold text-primary-foreground shadow-glow transition disabled:opacity-50"
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-crystal px-6 py-4 text-base font-semibold text-primary-foreground shadow-glow transition disabled:glass-crystal disabled:text-muted-foreground disabled:shadow-none"
             >
               {loading ? (
                 <>
