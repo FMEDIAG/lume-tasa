@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequest } from "@tanstack/react-start/server";
+import { getRequest, setResponseStatus } from "@tanstack/react-start/server";
 import { z } from "zod";
 
 const MAX_PHOTO_CHARS = 1_500_000;
@@ -78,7 +78,8 @@ export const detectCategory = createServerFn({ method: "POST" })
     const origin = request?.headers.get("origin") ?? request?.headers.get("referer") ?? null;
     const host = request?.headers.get("host") ?? null;
     if (!isAllowedOrigin(origin, host)) {
-      throw new Response("Forbidden", { status: 403 });
+      setResponseStatus(403);
+      throw new Error("Forbidden");
     }
     const ip =
       request?.headers.get("cf-connecting-ip") ??
@@ -86,7 +87,8 @@ export const detectCategory = createServerFn({ method: "POST" })
       request?.headers.get("x-real-ip") ??
       "unknown";
     if (!allowed(ip)) {
-      throw new Response("Too many requests", { status: 429 });
+      setResponseStatus(429);
+      throw new Error("Too many requests");
     }
 
     const system =
