@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -169,7 +170,7 @@ function Index() {
 
 function onSave() {
   if (!result) {
-    alert("No hay resultado para guardar");
+    toast.error(lang === "es" ? "No hay resultado para guardar" : "No result to save");
     return;
   }
 
@@ -194,9 +195,9 @@ function onSave() {
 
 
     setSaved(true);
-    alert("¡Guardado correctamente en el historial!");
+    toast.success(lang === "es" ? "Guardado en el historial" : "Saved to history");
   } catch (err) {
-    alert("Error al guardar: " + String(err));
+    toast.error((lang === "es" ? "Error al guardar: " : "Save error: ") + String(err));
   }
 }
 
