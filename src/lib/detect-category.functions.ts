@@ -17,6 +17,7 @@ const CATEGORY_KEYS = [
   "vinyl",
   "fashion",
   "sports",
+  "realestate",
   "other",
 ] as const;
 
