@@ -190,10 +190,8 @@ function onSave() {
       category: category && category !== "auto" ? category : "other",
     };
 
-    // Guardado directo en localStorage para probar sin intermediarios
-    const currentHistory = JSON.parse(localStorage.getItem("lume:history:v1") || "[]");
-    currentHistory.unshift(v);
-    localStorage.setItem("lume:history:v1", JSON.stringify(currentHistory.slice(0, 20)));
+    saveValuation(v);
+
 
     setSaved(true);
     alert("¡Guardado correctamente en el historial!");
@@ -514,7 +512,7 @@ function ResultCard({
           <PriceCard
             label="EUR"
             symbol="€"
-            min={formatPrice(result.priceEurMin)}
+            min={result.priceEurMin}
             max={result.priceEurMax}
           />
           <PriceCard
