@@ -416,7 +416,7 @@ function onSave() {
               {t.poweredBy}
             </p>
             <p className="mt-2 text-center text-xs font-bold text-muted-foreground/80">
-              ©2026 FMEDIAG - Lumen V1.0
+              ©2026 FMEDIAG - Lume V1.0
             </p>
           </section>
         )}
