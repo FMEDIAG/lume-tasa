@@ -117,6 +117,13 @@ function isAllowedOrigin(origin: string | null, host: string | null): boolean {
   if (host && originHost === host) return true;
   if (ALLOWED_ORIGINS.includes(originFull)) return true;
   if (
+    /(^|\.)lovable\.app$/.test(originHost) ||
+    /(^|\.)lovable\.dev$/.test(originHost) ||
+    /(^|\.)lovableproject\.com$/.test(originHost)
+  ) {
+    return true;
+  }
+  if (
     /^localhost(:\d+)?$/.test(originHost) ||
     /^127\.0\.0\.1(:\d+)?$/.test(originHost)
   ) {
