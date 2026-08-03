@@ -7,7 +7,7 @@ export const translations = {
     homeHeading: "Lume",
     logoAlt: "Lume logo — Tasación de objetos",
     subtitle:
-      "Sube de 1 a 3 fotos de tu objeto y obtén una tasación estimada con fuentes públicas de todo el mundo.",
+      "Sube de 1 a 3 fotos de tu objeto y obtén una tasación estimada por fuentes públicas de todo el mundo.",
     takePhoto: "Cámara",
     fromGallery: "Galería",
     photosCount: (n: number) => `${n} foto${n === 1 ? "" : "s"} añadida${n === 1 ? "" : "s"}`,
