@@ -245,7 +245,7 @@ BASQUE COUNTRY is a high-price market: never substitute national or province-wid
           "Lovable-API-Key": apiKey,
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
+          model: "google/gemini-3.6-flash",
           messages: [
             {
               role: "system",
