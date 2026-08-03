@@ -7,11 +7,11 @@ export const translations = {
     homeHeading: "Lume",
     logoAlt: "Lume logo — Tasación de objetos",
     subtitle:
-      "Sube al menos dos fotos de tu objeto y obtén una tasación estimada con fuentes públicas de todo el mundo.",
+      "Sube de 1 a 3 fotos de tu objeto y obtén una tasación estimada con fuentes públicas de todo el mundo.",
     takePhoto: "Cámara",
     fromGallery: "Galería",
     photosCount: (n: number) => `${n} foto${n === 1 ? "" : "s"} añadida${n === 1 ? "" : "s"}`,
-    minPhotos: "Añade al menos 2 fotos para tasar",
+    minPhotos: "Añade al menos 1 foto para tasar",
     category: "Categoría",
     categories: {
       auto: "Detectar automáticamente",
@@ -71,11 +71,11 @@ export const translations = {
     homeHeading: "Lume",
     logoAlt: "Lume logo — Object appraisal",
     subtitle:
-      "Upload at least two photos of your item and get an estimated valuation using public sources from around the world.",
+      "Upload 1 to 3 photos of your item and get an estimated valuation using public sources from around the world.",
     takePhoto: "Camera",
     fromGallery: "Gallery",
     photosCount: (n: number) => `${n} photo${n === 1 ? "" : "s"} added`,
-    minPhotos: "Add at least 2 photos to appraise",
+    minPhotos: "Add at least 1 photo to appraise",
     category: "Category",
     categories: {
       auto: "Auto-detect",
