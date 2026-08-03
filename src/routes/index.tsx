@@ -132,7 +132,7 @@ function Index() {
       .finally(() => setDetecting(false));
   }, [photos, lang, detect, category]);
 
-  const canValuate = photos.length >= 2 && !loading;
+  const canValuate = photos.length >= 1 && !loading;
 
   async function onFiles(files: FileList | null) {
     if (!files) return;
@@ -141,7 +141,7 @@ function Index() {
       const dataUrl = await compressImage(f);
       newPhotos.push({ id: crypto.randomUUID(), dataUrl });
     }
-    setPhotos((p) => [...p, ...newPhotos].slice(0, 6));
+    setPhotos((p) => [...p, ...newPhotos].slice(0, 3));
   }
 
   async function onValuate() {
@@ -406,7 +406,7 @@ function onSave() {
                 </>
               )}
             </button>
-            {photos.length < 2 && (
+            {photos.length < 1 && (
               <p className="mt-3 text-center text-xs text-muted-foreground">{t.minPhotos}</p>
             )}
             {error && (
