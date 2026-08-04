@@ -91,7 +91,7 @@ function HistoryPage() {
         </header>
 
         {items.length > 0 && (
-          <div className="mt-5 -mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+          <div className="mt-5 -mx-1 flex flex-wrap gap-1.5 px-1 pb-1">
             {[{ key: "all", label: allLabel }, ...usedCategories.map((k) => ({ key: k, label: t.categories[k as keyof typeof t.categories] ?? k }))].map((tab) => (
               <button
                 key={tab.key}
