@@ -91,12 +91,12 @@ function HistoryPage() {
         </header>
 
         {items.length > 0 && (
-          <div className="mt-5 -mx-1 flex flex-wrap gap-1.5 px-1 pb-1">
+          <div className="mt-5 flex min-h-[44px] flex-wrap content-start items-center gap-2 transition-all duration-300 ease-out">
             {[{ key: "all", label: allLabel }, ...usedCategories.map((k) => ({ key: k, label: t.categories[k as keyof typeof t.categories] ?? k }))].map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`shrink-0 rounded-full border px-3 py-1.5 text-xs whitespace-nowrap transition ${
+                className={`shrink-0 rounded-full border px-3.5 py-2 text-xs leading-none whitespace-nowrap transition-all duration-200 sm:px-3 sm:py-1.5 ${
                   activeTab === tab.key
                     ? "border-primary/60 bg-primary/20 text-primary font-semibold"
                     : "border-primary/20 bg-background/40 text-muted-foreground hover:text-primary"
@@ -115,7 +115,7 @@ function HistoryPage() {
             {filtered.map((v) => {
               const isOpen = openId === v.id;
               return (
-                <li key={v.id} className="glass-crystal rounded-2xl p-4">
+                <li key={v.id} className="glass-crystal rounded-2xl p-4 transition-all duration-300 ease-out">
                   <button
                     type="button"
                     onClick={() => setOpenId(isOpen ? null : v.id)}
@@ -128,8 +128,8 @@ function HistoryPage() {
                       className="h-16 w-16 shrink-0 rounded-lg object-cover ring-1 ring-primary/30"
                     />
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <h2 className="truncate text-sm font-semibold text-foreground">
+                      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
+                        <h2 className="min-w-0 truncate text-sm font-semibold text-foreground">
                           {v.title}
                         </h2>
                         <span
@@ -145,7 +145,7 @@ function HistoryPage() {
                               deleteValuation(v.id);
                             }
                           }}
-                          className="text-muted-foreground transition hover:text-destructive"
+                          className="-m-1 shrink-0 p-1 text-muted-foreground transition hover:text-destructive"
                           aria-label={t.delete}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -154,11 +154,11 @@ function HistoryPage() {
                       <p className="mt-0.5 text-[11px] text-muted-foreground">
                         {new Date(v.createdAt).toLocaleString(locale)}
                       </p>
-                      <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                        <span className="rounded-full bg-primary/15 px-2 py-0.5 text-primary">
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                        <span className="rounded-full bg-primary/15 px-2 py-1 leading-tight text-primary">
                           €{fmt(v.priceEurMin)}–€{fmt(v.priceEurMax)}
                         </span>
-                        <span className="rounded-full bg-accent/15 px-2 py-0.5 text-accent">
+                        <span className="rounded-full bg-accent/15 px-2 py-1 leading-tight text-accent">
                           ${fmt(v.priceUsdMin)}–${fmt(v.priceUsdMax)}
                         </span>
                       </div>
@@ -170,8 +170,14 @@ function HistoryPage() {
                     </div>
                   </button>
 
-                  {isOpen && (
-                    <div className="mt-4 space-y-3 border-t border-primary/20 pt-3">
+                  <div
+                    className={`grid transition-all duration-300 ease-out ${
+                      isOpen
+                        ? "mt-4 grid-rows-[1fr] border-t border-primary/20 pt-3 opacity-100"
+                        : "mt-0 grid-rows-[0fr] border-t-0 border-transparent pt-0 opacity-0"
+                    }`}
+                  >
+                    <div className="overflow-hidden space-y-3">
                       <div>
                         <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
                           {t.identification}
@@ -198,24 +204,24 @@ function HistoryPage() {
                           <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
                             {t.sources}
                           </p>
-                          <div className="mt-2 flex flex-wrap gap-1.5">
+                          <div className="mt-2 flex flex-wrap items-center gap-1.5">
                             {v.sources.map((s, i) => (
                               <a
                                 key={i}
                                 href={sourceUrl(s, v.title)}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] text-primary transition hover:bg-primary/20"
+                                className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1.5 text-[11px] leading-tight text-primary transition hover:bg-primary/20"
                               >
                                 {s}
-                                <ExternalLink className="h-3 w-3" />
+                                <ExternalLink className="h-3 w-3 shrink-0" />
                               </a>
                             ))}
                           </div>
                         </div>
                       )}
                     </div>
-                  )}
+                  </div>
                 </li>
               );
             })}
