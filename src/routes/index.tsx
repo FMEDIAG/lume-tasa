@@ -626,7 +626,7 @@ function PriceCard({
     if (typeof n !== "number" || isNaN(n)) return "0";
     return n < 1 
       ? n.toFixed(2) 
-      : new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(n);
+      : new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(n);
   };
 
   return (
