@@ -7,7 +7,7 @@ import {
   type Valuation,
 } from "@/lib/history";
 import { translations, type Lang } from "@/lib/i18n";
-import { formatPrice } from "@/lib/formatPrice";
+import { formatNumber } from "@/lib/formatPrice";
 import { extractPricePerSqm } from "@/lib/pricePerSqm";
 
 function sourceUrl(source: string, query: string): string {
