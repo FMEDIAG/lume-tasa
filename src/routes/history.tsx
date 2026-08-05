@@ -7,7 +7,7 @@ import {
   type Valuation,
 } from "@/lib/history";
 import { translations, type Lang } from "@/lib/i18n";
-import { formatPrice } from "@/lib/formatPrice";
+import { formatNumber } from "@/lib/formatPrice";
 import { extractPricePerSqm } from "@/lib/pricePerSqm";
 
 function sourceUrl(source: string, query: string): string {
@@ -41,12 +41,7 @@ export const Route = createFileRoute("/history")({
   component: HistoryPage,
 });
 
-const fmt = (n: number) =>
-  typeof n !== "number" || isNaN(n)
-    ? "0"
-    : n < 1
-      ? n.toFixed(2)
-      : new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(n);
+const fmt = formatNumber;
 
 function HistoryPage() {
   const [items, setItems] = useState<Valuation[]>([]);
