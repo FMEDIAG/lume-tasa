@@ -622,12 +622,7 @@ function PriceCard({
   min: number;
   max: number;
 }) {
-  const fmt = (n: number) => {
-    if (typeof n !== "number" || isNaN(n)) return "0";
-    return n < 1 
-      ? n.toFixed(2) 
-      : new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(n);
-  };
+  const fmt = formatNumber;
 
   return (
     <div className="rounded-2xl border border-primary/30 bg-primary/5 p-3 text-center">
