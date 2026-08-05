@@ -7,7 +7,8 @@ import { valuateItem } from "@/lib/valuate.functions";
 import { detectCategory } from "@/lib/detect-category.functions";
 import { translations, type Lang } from "@/lib/i18n";
 import { saveValuation, type Valuation } from "@/lib/history";
-import { formatPrice } from "@/lib/formatPrice"; 
+import { formatPrice } from "@/lib/formatPrice";
+import { extractPricePerSqm } from "@/lib/pricePerSqm";
 //
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -538,6 +539,18 @@ function ResultCard({
             <p className="text-xs uppercase tracking-wider text-muted-foreground">
               {t.notes}
             </p>
+            {extractPricePerSqm(result.notes).length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {extractPricePerSqm(result.notes).map((p) => (
+                  <span
+                    key={p}
+                    className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold tabular-nums leading-tight text-primary"
+                  >
+                    {p}
+                  </span>
+                ))}
+              </div>
+            )}
             <p className="mt-1 text-sm leading-relaxed text-foreground/80">
               {result.notes}
             </p>
@@ -613,7 +626,7 @@ function PriceCard({
     if (typeof n !== "number" || isNaN(n)) return "0";
     return n < 1 
       ? n.toFixed(2) 
-      : new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(n);
+      : new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(n);
   };
 
   return (

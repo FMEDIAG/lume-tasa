@@ -8,6 +8,7 @@ import {
 } from "@/lib/history";
 import { translations, type Lang } from "@/lib/i18n";
 import { formatPrice } from "@/lib/formatPrice";
+import { extractPricePerSqm } from "@/lib/pricePerSqm";
 
 function sourceUrl(source: string, query: string): string {
   const q = encodeURIComponent(query);
@@ -45,7 +46,7 @@ const fmt = (n: number) =>
     ? "0"
     : n < 1
       ? n.toFixed(2)
-      : new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(n);
+      : new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(n);
 
 function HistoryPage() {
   const [items, setItems] = useState<Valuation[]>([]);
@@ -194,6 +195,18 @@ function HistoryPage() {
                           <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
                             {t.notes}
                           </p>
+                          {extractPricePerSqm(v.notes).length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {extractPricePerSqm(v.notes).map((p) => (
+                                <span
+                                  key={p}
+                                  className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold tabular-nums leading-tight text-primary"
+                                >
+                                  {p}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                           <p className="mt-1 text-sm leading-relaxed text-foreground/80">
                             {v.notes}
                           </p>
