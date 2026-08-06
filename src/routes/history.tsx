@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { ArrowLeft, ExternalLink, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, Download, ExternalLink, Trash2, Upload } from "lucide-react";
+import { toast } from "sonner";
 import {
   deleteValuation,
+  exportHistory,
   getHistory,
+  importHistory,
   type Valuation,
 } from "@/lib/history";
 import { translations, type Lang } from "@/lib/i18n";
