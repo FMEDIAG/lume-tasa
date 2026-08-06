@@ -48,6 +48,8 @@ function HistoryPage() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [lang, setLang] = useState<Lang>("es");
   const [activeTab, setActiveTab] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
     const read = () => {
