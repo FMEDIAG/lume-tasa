@@ -51,10 +51,14 @@ function HistoryPage() {
 
   useEffect(() => {
     const read = () => {
-      setItems(getHistory());
+      void getHistory().then((h) => {
+        setItems(h);
+        setLoading(false);
+      });
       setLang(((localStorage.getItem("lume:lang") as Lang) || "es"));
     };
     read();
+
     window.addEventListener("lume:history", read);
     window.addEventListener("lume:lang", read);
     return () => {
