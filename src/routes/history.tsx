@@ -52,6 +52,26 @@ function HistoryPage() {
   const [lang, setLang] = useState<Lang>("es");
   const [activeTab, setActiveTab] = useState<string>("all");
   const [loading, setLoading] = useState(true);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+
+  const handleExport = async () => {
+    try {
+      await exportHistory();
+      toast.success(t.exportOk);
+    } catch {
+      toast.error(t.exportError);
+    }
+  };
+
+  const handleImport = async (file: File) => {
+    try {
+      const n = await importHistory(await file.text());
+      setItems(await getHistory());
+      toast.success(t.importOk(n));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t.importError);
+    }
+  };
 
 
   useEffect(() => {
