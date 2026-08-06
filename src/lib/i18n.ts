@@ -64,6 +64,12 @@ export const translations = {
     suggested: "Sugerida por IA",
     applySuggestion: "Aplicar",
     candidates: "Candidatas",
+    exportHistory: "Exportar",
+    importHistory: "Importar",
+    exportOk: "Historial exportado",
+    exportError: "No se pudo exportar el historial",
+    importOk: (n: number) => `${n} tasación${n === 1 ? "" : "es"} importada${n === 1 ? "" : "s"}`,
+    importError: "No se pudo importar el archivo",
   },
   en: {
     appName: "Lume",
@@ -128,6 +134,12 @@ export const translations = {
     suggested: "AI suggestion",
     applySuggestion: "Apply",
     candidates: "Candidates",
+    exportHistory: "Export",
+    importHistory: "Import",
+    exportOk: "History exported",
+    exportError: "Could not export history",
+    importOk: (n: number) => `${n} appraisal${n === 1 ? "" : "s"} imported`,
+    importError: "Could not import the file",
   },
 } as const;
 
