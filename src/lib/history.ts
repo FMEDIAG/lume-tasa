@@ -107,6 +107,57 @@ export async function deleteValuation(id: string): Promise<void> {
 
 export const deleteHistory = deleteValuation;
 
+export async function exportHistory(): Promise<void> {
+  const items = await getHistory();
+  const payload = {
+    app: "Lume",
+    kind: "valuation-history",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    items,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `lume-historial-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function isValuation(v: unknown): v is Valuation {
+  const o = v as Valuation;
+  return (
+    !!o &&
+    typeof o === "object" &&
+    typeof o.id === "string" &&
+    typeof o.title === "string" &&
+    typeof o.createdAt === "number" &&
+    typeof o.priceEurMin === "number" &&
+    typeof o.priceEurMax === "number"
+  );
+}
+
+/** Importa un JSON exportado. Devuelve el número de tasaciones añadidas/actualizadas. */
+export async function importHistory(json: string): Promise<number> {
+  if (typeof window === "undefined" || !("indexedDB" in window)) return 0;
+  const parsed: unknown = JSON.parse(json);
+  const raw = Array.isArray(parsed)
+    ? parsed
+    : ((parsed as { items?: unknown[] })?.items ?? null);
+  if (!Array.isArray(raw)) throw new Error("Formato de archivo no válido");
+  const items = raw.filter(isValuation);
+  if (items.length === 0) throw new Error("El archivo no contiene tasaciones válidas");
+  await migrateLegacy();
+  for (const item of items) {
+    await tx("readwrite", (s) => s.put(item));
+  }
+  notify();
+  return items.length;
+}
+
 export async function clearHistory(): Promise<void> {
   if (typeof window === "undefined" || !("indexedDB" in window)) return;
   try {
