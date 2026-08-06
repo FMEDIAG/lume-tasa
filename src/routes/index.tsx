@@ -192,7 +192,7 @@ async function onSave() {
       category: category && category !== "auto" ? category : "other",
     };
 
-    saveValuation(v);
+    await saveValuation(v);
 
 
     setSaved(true);
