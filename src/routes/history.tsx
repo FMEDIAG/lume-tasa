@@ -110,8 +110,13 @@ function HistoryPage() {
           </div>
         )}
 
-        {filtered.length === 0 ? (
+        {loading ? (
+          <p className="mt-16 text-center text-sm text-muted-foreground animate-pulse">
+            {lang === "es" ? "Cargando…" : "Loading…"}
+          </p>
+        ) : filtered.length === 0 ? (
           <p className="mt-16 text-center text-sm text-muted-foreground">{t.empty}</p>
+
         ) : (
           <ul className="mt-6 space-y-3">
             {filtered.map((v) => {
