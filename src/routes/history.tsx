@@ -48,13 +48,19 @@ function HistoryPage() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [lang, setLang] = useState<Lang>("es");
   const [activeTab, setActiveTab] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
     const read = () => {
-      setItems(getHistory());
+      void getHistory().then((h) => {
+        setItems(h);
+        setLoading(false);
+      });
       setLang(((localStorage.getItem("lume:lang") as Lang) || "es"));
     };
     read();
+
     window.addEventListener("lume:history", read);
     window.addEventListener("lume:lang", read);
     return () => {
@@ -104,8 +110,13 @@ function HistoryPage() {
           </div>
         )}
 
-        {filtered.length === 0 ? (
+        {loading ? (
+          <p className="mt-16 text-center text-sm text-muted-foreground animate-pulse">
+            {lang === "es" ? "Cargando…" : "Loading…"}
+          </p>
+        ) : filtered.length === 0 ? (
           <p className="mt-16 text-center text-sm text-muted-foreground">{t.empty}</p>
+
         ) : (
           <ul className="mt-6 space-y-3">
             {filtered.map((v) => {

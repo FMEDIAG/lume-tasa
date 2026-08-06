@@ -169,7 +169,7 @@ function Index() {
     }
   }
 
-function onSave() {
+async function onSave() {
   if (!result) {
     toast.error(lang === "es" ? "No hay resultado para guardar" : "No result to save");
     return;
@@ -192,7 +192,7 @@ function onSave() {
       category: category && category !== "auto" ? category : "other",
     };
 
-    saveValuation(v);
+    await saveValuation(v);
 
 
     setSaved(true);
