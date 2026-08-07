@@ -305,6 +305,33 @@ function HistoryPage() {
               );
             })}
           </ul>
+
+          {totalPages > 1 && (
+            <nav
+              aria-label={lang === "es" ? "Paginación del historial" : "History pagination"}
+              className="mt-6 flex items-center justify-between gap-3"
+            >
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className="glass-crystal rounded-full px-4 py-2 text-xs font-semibold text-primary transition hover:bg-primary/15 disabled:opacity-40 disabled:hover:bg-transparent"
+              >
+                {t.previous}
+              </button>
+              <span className="text-xs text-muted-foreground">
+                {t.page} {page} {t.of} {totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="glass-crystal rounded-full px-4 py-2 text-xs font-semibold text-primary transition hover:bg-primary/15 disabled:opacity-40 disabled:hover:bg-transparent"
+              >
+                {t.next}
+              </button>
+            </nav>
+          )}
         )}
       </div>
     </div>
