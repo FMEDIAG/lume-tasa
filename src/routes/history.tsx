@@ -51,8 +51,10 @@ function HistoryPage() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [lang, setLang] = useState<Lang>("es");
   const [activeTab, setActiveTab] = useState<string>("all");
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const ITEMS_PER_PAGE = 10;
 
   const handleExport = async () => {
     try {
@@ -92,12 +94,18 @@ function HistoryPage() {
     };
   }, []);
 
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab, items.length]);
+
   const t = translations[lang];
   const locale = lang === "es" ? "es-ES" : "en-US";
   const usedCategories = Array.from(
     new Set(items.map((v) => (v.category && v.category in t.categories ? v.category : "other")))
   );
   const filtered = activeTab === "all" ? items : items.filter((v) => (v.category ?? "other") === activeTab);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const paginatedItems = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
   const allLabel = lang === "es" ? "Todas" : "All";
 
   return (
@@ -166,137 +174,166 @@ function HistoryPage() {
           <p className="mt-16 text-center text-sm text-muted-foreground animate-pulse">
             {lang === "es" ? "Cargando…" : "Loading…"}
           </p>
-        ) : filtered.length === 0 ? (
+        ) : paginatedItems.length === 0 ? (
           <p className="mt-16 text-center text-sm text-muted-foreground">{t.empty}</p>
 
         ) : (
-          <ul className="mt-6 space-y-3">
-            {filtered.map((v) => {
-              const isOpen = openId === v.id;
-              return (
-                <li key={v.id} className="glass-crystal rounded-2xl p-4 transition-all duration-300 ease-out">
-                  <button
-                    type="button"
-                    onClick={() => setOpenId(isOpen ? null : v.id)}
-                    aria-expanded={isOpen}
-                    className="flex w-full gap-3 text-left"
-                  >
-                    <img
-                      src={v.thumbnail}
-                      alt=""
-                      className="h-16 w-16 shrink-0 rounded-lg object-cover ring-1 ring-primary/30"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
-                        <h2 className="min-w-0 truncate text-sm font-semibold text-foreground">
-                          {v.title}
-                        </h2>
-                        <span
-                          role="button"
-                          tabIndex={0}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteValuation(v.id);
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
+          <>
+            <ul className="mt-6 space-y-3">
+              {paginatedItems.map((v) => {
+                const isOpen = openId === v.id;
+                return (
+                  <li key={v.id} className="glass-crystal rounded-2xl p-4 transition-all duration-300 ease-out">
+                    <button
+                      type="button"
+                      onClick={() => setOpenId(isOpen ? null : v.id)}
+                      aria-expanded={isOpen}
+                      className="flex w-full gap-3 text-left"
+                    >
+                      <img
+                        src={v.thumbnail}
+                        alt=""
+                        className="h-16 w-16 shrink-0 rounded-lg object-cover ring-1 ring-primary/30"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
+                          <h2 className="min-w-0 truncate text-sm font-semibold text-foreground">
+                            {v.title}
+                          </h2>
+                          <span
+                            role="button"
+                            tabIndex={0}
+                            onClick={(e) => {
                               e.stopPropagation();
                               deleteValuation(v.id);
-                            }
-                          }}
-                          className="-m-1 shrink-0 p-1 text-muted-foreground transition hover:text-destructive"
-                          aria-label={t.delete}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </span>
-                      </div>
-                      <p className="mt-0.5 text-[11px] text-muted-foreground">
-                        {new Date(v.createdAt).toLocaleString(locale)}
-                      </p>
-                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                        <span className="rounded-full bg-primary/15 px-2 py-1 leading-tight text-primary">
-                          €{fmt(v.priceEurMin)}–€{fmt(v.priceEurMax)}
-                        </span>
-                        <span className="rounded-full bg-accent/15 px-2 py-1 leading-tight text-accent">
-                          ${fmt(v.priceUsdMin)}–${fmt(v.priceUsdMax)}
-                        </span>
-                      </div>
-                      {!isOpen && (
-                        <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
-                          {v.identification}
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.stopPropagation();
+                                deleteValuation(v.id);
+                              }
+                            }}
+                            className="-m-1 shrink-0 p-1 text-muted-foreground transition hover:text-destructive"
+                            aria-label={t.delete}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </span>
+                        </div>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground">
+                          {new Date(v.createdAt).toLocaleString(locale)}
                         </p>
-                      )}
-                    </div>
-                  </button>
+                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                          <span className="rounded-full bg-primary/15 px-2 py-1 leading-tight text-primary">
+                            €{fmt(v.priceEurMin)}–€{fmt(v.priceEurMax)}
+                          </span>
+                          <span className="rounded-full bg-accent/15 px-2 py-1 leading-tight text-accent">
+                            ${fmt(v.priceUsdMin)}–${fmt(v.priceUsdMax)}
+                          </span>
+                        </div>
+                        {!isOpen && (
+                          <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
+                            {v.identification}
+                          </p>
+                        )}
+                      </div>
+                    </button>
 
-                  <div
-                    className={`grid transition-all duration-300 ease-out ${
-                      isOpen
-                        ? "mt-4 grid-rows-[1fr] border-t border-primary/20 pt-3 opacity-100"
-                        : "mt-0 grid-rows-[0fr] border-t-0 border-transparent pt-0 opacity-0"
-                    }`}
-                  >
-                    <div className="overflow-hidden space-y-3">
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                          {t.identification}
-                        </p>
-                        <p className="mt-1 text-sm leading-relaxed text-foreground/90">
-                          {v.identification}
-                        </p>
-                      </div>
-                      <p className="text-[11px] font-medium uppercase text-primary">
-                        {t.confidence}: {v.confidence}
-                      </p>
-                      {v.notes && (
+                    <div
+                      className={`grid transition-all duration-300 ease-out ${
+                        isOpen
+                          ? "mt-4 grid-rows-[1fr] border-t border-primary/20 pt-3 opacity-100"
+                          : "mt-0 grid-rows-[0fr] border-t-0 border-transparent pt-0 opacity-0"
+                      }`}
+                    >
+                      <div className="overflow-hidden space-y-3">
                         <div>
                           <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                            {t.notes}
+                            {t.identification}
                           </p>
-                          {extractPricePerSqm(v.notes).length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-1.5">
-                              {extractPricePerSqm(v.notes).map((p) => (
-                                <span
-                                  key={p}
-                                  className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold tabular-nums leading-tight text-primary"
+                          <p className="mt-1 text-sm leading-relaxed text-foreground/90">
+                            {v.identification}
+                          </p>
+                        </div>
+                        <p className="text-[11px] font-medium uppercase text-primary">
+                          {t.confidence}: {v.confidence}
+                        </p>
+                        {v.notes && (
+                          <div>
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                              {t.notes}
+                            </p>
+                            {extractPricePerSqm(v.notes).length > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-1.5">
+                                {extractPricePerSqm(v.notes).map((p) => (
+                                  <span
+                                    key={p}
+                                    className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold tabular-nums leading-tight text-primary"
+                                  >
+                                    {p}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            <p className="mt-1 text-sm leading-relaxed text-foreground/80">
+                              {v.notes}
+                            </p>
+                          </div>
+                        )}
+                        {v.sources?.length > 0 && (
+                          <div>
+                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                              {t.sources}
+                            </p>
+                            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                              {v.sources.map((s, i) => (
+                                <a
+                                  key={i}
+                                  href={sourceUrl(s, v.title)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1.5 text-[11px] leading-tight text-primary transition hover:bg-primary/20"
                                 >
-                                  {p}
-                                </span>
+                                  {s}
+                                  <ExternalLink className="h-3 w-3 shrink-0" />
+                                </a>
                               ))}
                             </div>
-                          )}
-                          <p className="mt-1 text-sm leading-relaxed text-foreground/80">
-                            {v.notes}
-                          </p>
-                        </div>
-                      )}
-                      {v.sources?.length > 0 && (
-                        <div>
-                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                            {t.sources}
-                          </p>
-                          <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                            {v.sources.map((s, i) => (
-                              <a
-                                key={i}
-                                href={sourceUrl(s, v.title)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1.5 text-[11px] leading-tight text-primary transition hover:bg-primary/20"
-                              >
-                                {s}
-                                <ExternalLink className="h-3 w-3 shrink-0" />
-                              </a>
-                            ))}
                           </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+                  </li>
+                );
+              })}
+            </ul>
+
+            {totalPages > 1 && (
+              <nav
+                aria-label={lang === "es" ? "Paginación del historial" : "History pagination"}
+                className="mt-6 flex items-center justify-between gap-3"
+              >
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                  className="glass-crystal rounded-full px-4 py-2 text-xs font-semibold text-primary transition hover:bg-primary/15 disabled:opacity-40 disabled:hover:bg-transparent"
+                >
+                  {t.previous}
+                </button>
+                <span className="text-xs text-muted-foreground">
+                  {t.page} {page} {t.of} {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                  className="glass-crystal rounded-full px-4 py-2 text-xs font-semibold text-primary transition hover:bg-primary/15 disabled:opacity-40 disabled:hover:bg-transparent"
+                >
+                  {t.next}
+                </button>
+              </nav>
+            )}
+          </>
         )}
       </div>
     </div>
