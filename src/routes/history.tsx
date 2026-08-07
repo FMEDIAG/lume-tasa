@@ -104,6 +104,8 @@ function HistoryPage() {
     new Set(items.map((v) => (v.category && v.category in t.categories ? v.category : "other")))
   );
   const filtered = activeTab === "all" ? items : items.filter((v) => (v.category ?? "other") === activeTab);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const paginatedItems = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
   const allLabel = lang === "es" ? "Todas" : "All";
 
   return (
