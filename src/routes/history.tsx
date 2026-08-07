@@ -94,6 +94,10 @@ function HistoryPage() {
     };
   }, []);
 
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab, items.length]);
+
   const t = translations[lang];
   const locale = lang === "es" ? "es-ES" : "en-US";
   const usedCategories = Array.from(
