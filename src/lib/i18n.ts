@@ -9,7 +9,9 @@ export const translations = {
     subtitle:
       "Sube de 1 a 3 fotos de tu objeto y obtén una tasación estimada por fuentes públicas de todo el mundo.",
     takePhoto: "Cámara",
+    macroPhoto: "Macro",
     fromGallery: "Galería",
+
     photosCount: (n: number) => `${n} foto${n === 1 ? "" : "s"} añadida${n === 1 ? "" : "s"}`,
     minPhotos: "Añade al menos 1 foto para tasar",
     category: "Categoría",
@@ -83,7 +85,9 @@ export const translations = {
     subtitle:
       "Upload 1 to 3 photos of your item and get an estimated valuation using public sources from around the world.",
     takePhoto: "Camera",
+    macroPhoto: "Macro",
     fromGallery: "Gallery",
+
     photosCount: (n: number) => `${n} photo${n === 1 ? "" : "s"} added`,
     minPhotos: "Add at least 1 photo to appraise",
     category: "Category",
