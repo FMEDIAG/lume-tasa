@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { X, Check } from "lucide-react";
+import { X, Check, Focus, Zap, ZapOff } from "lucide-react";
 
 interface CameraCaptureProps {
   onCapture: (dataUrl: string) => void;
@@ -7,49 +7,60 @@ interface CameraCaptureProps {
   t: Record<string, any>;
 }
 
-type ZoomLevel = 1 | 2;
+const ZOOM_LEVELS = [1, 2, 3, 5] as const;
+type ZoomLevel = (typeof ZOOM_LEVELS)[number];
 
 export function CameraCapture({ onCapture, onClose, t }: CameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [zoom, setZoom] = useState<ZoomLevel>(1);
-  const [supportsZoom, setSupportsZoom] = useState(false);
+  const [digitalZoom, setDigitalZoom] = useState(1);
+  const [macro, setMacro] = useState(false);
+  const [torch, setTorch] = useState(false);
+  const [supportsTorch, setSupportsTorch] = useState(false);
+  const [supportsFocus, setSupportsFocus] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
 
   useEffect(() => {
     startCamera();
     return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-      }
+      streamRef.current?.getTracks().forEach((track) => track.stop());
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function startCamera() {
     try {
       setError(null);
-      const constraints: MediaStreamConstraints = {
+      const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: "environment",
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
+          facingMode: { ideal: "environment" },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
         },
         audio: false,
-      };
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      });
       streamRef.current = stream;
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play();
-          setIsStreaming(true);
-          checkZoomCapability(stream);
-        };
+      const video = videoRef.current;
+      if (video) {
+        video.srcObject = stream;
+        try {
+          await video.play();
+        } catch {
+          /* autoplay handled by attributes */
+        }
+        setIsStreaming(true);
       }
+
+      const track = stream.getVideoTracks()[0];
+      const caps: any = (track as any)?.getCapabilities?.() ?? {};
+      setSupportsTorch(Boolean(caps.torch));
+      setSupportsFocus(
+        Array.isArray(caps.focusMode) ? caps.focusMode.includes("manual") : Boolean(caps.focusDistance)
+      );
     } catch (err) {
       setError(
         err instanceof Error
@@ -59,194 +70,219 @@ export function CameraCapture({ onCapture, onClose, t }: CameraCaptureProps) {
     }
   }
 
-  function checkZoomCapability(stream: MediaStream) {
-    const videoTrack = stream.getVideoTracks()[0];
-    if (videoTrack) {
-      const capabilities = (videoTrack as any).getCapabilities?.();
-      if (capabilities?.zoom) {
-        setSupportsZoom(true);
+  async function applyZoom(level: ZoomLevel) {
+    setZoom(level);
+    const track = streamRef.current?.getVideoTracks()[0];
+    const caps: any = (track as any)?.getCapabilities?.() ?? {};
+
+    if (track && caps.zoom) {
+      const hw = Math.min(Math.max(level, caps.zoom.min ?? 1), caps.zoom.max ?? 1);
+      try {
+        await (track as any).applyConstraints({ advanced: [{ zoom: hw }] });
+        const remaining = level / hw;
+        setDigitalZoom(remaining);
+        return;
+      } catch {
+        /* fall through to digital zoom */
       }
     }
+    setDigitalZoom(level);
   }
 
-  async function applyZoom(level: ZoomLevel) {
-    const videoTrack = streamRef.current?.getVideoTracks()[0];
-    if (!videoTrack) return;
+  async function toggleMacro() {
+    const next = !macro;
+    setMacro(next);
+    const track = streamRef.current?.getVideoTracks()[0];
+    const caps: any = (track as any)?.getCapabilities?.() ?? {};
 
-    try {
-      const capabilities = (videoTrack as any).getCapabilities?.();
-      const { min = 1, max = 1 } = capabilities?.zoom || {};
-
-      // Si el dispositivo soporta zoom nativo por hardware
-      if (capabilities?.zoom && level >= min && level <= max) {
-        const constraints: any = {
-          advanced: [{ zoom: level }],
-        };
-        await videoTrack.applyConstraints(constraints);
-        if (videoRef.current) {
-          videoRef.current.style.transform = "scale(1)";
+    if (track && supportsFocus) {
+      try {
+        if (next) {
+          const near = caps.focusDistance?.min ?? 0;
+          await (track as any).applyConstraints({
+            advanced: [{ focusMode: "manual", focusDistance: near }],
+          });
+        } else {
+          await (track as any).applyConstraints({ advanced: [{ focusMode: "continuous" }] });
         }
-        setZoom(level);
-        return;
+      } catch {
+        /* keep digital macro assist */
       }
+    }
+    // Macro assist: acerca la imagen para resolver detalle fino (punzones, cuños...)
+    if (next && zoom < 2) await applyZoom(2);
+    if (!next) await applyZoom(1);
+  }
 
-      // Si no soporta zoom por hardware, aplicamos Zoom Digital vía CSS (Multiplica por el nivel)
-      if (videoRef.current) {
-        videoRef.current.style.transform = `scale(${level})`;
-        videoRef.current.style.transformOrigin = "center";
-      }
-      setZoom(level);
-    } catch (err) {
-      // Fallback si falla la restricción
-      if (videoRef.current) {
-        videoRef.current.style.transform = `scale(${level})`;
-        videoRef.current.style.transformOrigin = "center";
-      }
-      setZoom(level);
+  async function toggleTorch() {
+    const track = streamRef.current?.getVideoTracks()[0];
+    if (!track || !supportsTorch) return;
+    const next = !torch;
+    try {
+      await (track as any).applyConstraints({ advanced: [{ torch: next }] });
+      setTorch(next);
+    } catch {
+      /* ignore */
     }
   }
 
   function capturePhoto() {
     const video = videoRef.current;
     const canvas = canvasRef.current;
-
     if (!video || !canvas) return;
-
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Redimensionar para optimizar peso (máximo 1000px de ancho/alto) para no saturar LocalStorage
-    const maxDimension = 1000;
-    let width = video.videoWidth;
-    let height = video.videoHeight;
+    const z = digitalZoom;
+    // Recorte central según el zoom digital aplicado en pantalla
+    const srcW = video.videoWidth / z;
+    const srcH = video.videoHeight / z;
+    const srcX = (video.videoWidth - srcW) / 2;
+    const srcY = (video.videoHeight - srcH) / 2;
 
+    // En macro conservamos más resolución para no perder detalle fino
+    const maxDimension = macro ? 1600 : 1200;
+    let width = srcW;
+    let height = srcH;
     if (width > maxDimension || height > maxDimension) {
-      if (width > height) {
-        height = Math.round((height * maxDimension) / width);
-        width = maxDimension;
-      } else {
-        width = Math.round((width * maxDimension) / height);
-        height = maxDimension;
-      }
+      const scale = maxDimension / Math.max(width, height);
+      width = Math.round(width * scale);
+      height = Math.round(height * scale);
+    } else {
+      width = Math.round(width);
+      height = Math.round(height);
     }
 
     canvas.width = width;
     canvas.height = height;
+    ctx.drawImage(video, srcX, srcY, srcW, srcH, 0, 0, width, height);
 
-    ctx.save();
-    // Si se aplicó zoom CSS, recortar y escalar el centro del video
-    if (zoom > 1) {
-      ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.scale(zoom, zoom);
-      ctx.translate(-canvas.width / 2, -canvas.height / 2);
-    }
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    ctx.restore();
-
-    // Compresión inteligente a 0.75: Mantiene nitidez en sellos/punzones pero reduce el peso a ~150KB
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.75);
-    onCapture(dataUrl);
+    onCapture(canvas.toDataURL("image/jpeg", macro ? 0.9 : 0.8));
   }
 
-  const zoomLevels: ZoomLevel[] = [1, 2];
+  const label = (es: string, en: string) => (t?.lang === "en" ? en : es);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black">
-      {/* Video Stream */}
+    <div className="fixed inset-0 z-50 flex flex-col bg-background">
       <div className="relative flex-1 overflow-hidden">
-        {isStreaming ? (
-          <video
-            ref={videoRef}
-            className="h-full w-full object-cover transition-transform duration-200"
-            playsInline
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center">
-            <div className="text-center text-white">
-              <p className="mt-4 text-sm">Iniciando cámara...</p>
-            </div>
+        <video
+          ref={videoRef}
+          className="h-full w-full object-cover transition-transform duration-200"
+          style={{ transform: `scale(${digitalZoom})`, transformOrigin: "center" }}
+          playsInline
+          muted
+          autoPlay
+        />
+
+        {!isStreaming && !error && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <p className="text-sm text-muted-foreground">
+              {label("Iniciando cámara…", "Starting camera…")}
+            </p>
           </div>
         )}
 
-        {/* Error Message */}
+        {macro && isStreaming && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <div className="h-48 w-48 rounded-2xl border-2 border-primary/70 shadow-glow" />
+          </div>
+        )}
+
         {error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/80">
-            <div className="text-center text-white">
+          <div className="absolute inset-0 flex items-center justify-center bg-background/90 px-6">
+            <div className="glass-crystal rounded-2xl p-5 text-center">
               <p className="text-sm font-medium text-destructive">{error}</p>
               <button
                 onClick={onClose}
-                className="mt-4 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+                className="mt-4 rounded-xl bg-gradient-crystal px-4 py-2 text-sm font-semibold text-primary-foreground"
               >
-                Cerrar / Close
+                {label("Cerrar", "Close")}
               </button>
             </div>
           </div>
         )}
 
-        {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-full bg-black/50 p-2 text-white backdrop-blur transition hover:bg-black/70"
-          aria-label="Close camera"
+          className="glass-crystal absolute right-4 top-4 rounded-full p-2 text-primary"
+          aria-label={label("Cerrar cámara", "Close camera")}
         >
           <X className="h-5 w-5" />
         </button>
       </div>
 
-      {/* Controls */}
       {isStreaming && !error && (
-        <div className="space-y-3 bg-black/80 p-4 backdrop-blur">
-          {/* Zoom Controls */}
+        <div className="glass-crystal space-y-3 rounded-t-3xl p-4">
           <div className="flex items-center justify-center gap-2">
-            {zoomLevels.map((level) => {
-              const labels: Record<ZoomLevel, string> = {
-                1: "1x",
-                2: "2x (Macro)",
-              };
-
-              return (
-                <button
-                  key={level}
-                  onClick={() => applyZoom(level)}
-                  className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
-                    zoom === level
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-white/20 text-white hover:bg-white/30"
-                  }`}
-                >
-                  {labels[level]}
-                </button>
-              );
-            })}
+            {ZOOM_LEVELS.map((level) => (
+              <button
+                key={level}
+                onClick={() => applyZoom(level)}
+                className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${
+                  zoom === level
+                    ? "bg-gradient-crystal text-primary-foreground"
+                    : "glass-crystal text-muted-foreground"
+                }`}
+              >
+                {level}x
+              </button>
+            ))}
           </div>
 
-          {/* Capture and Close Buttons */}
+          <div className="flex items-center justify-center gap-2">
+            <button
+              onClick={toggleMacro}
+              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition ${
+                macro
+                  ? "bg-gradient-crystal text-primary-foreground"
+                  : "glass-crystal text-muted-foreground"
+              }`}
+            >
+              <Focus className="h-4 w-4" />
+              {label("Macro", "Macro")}
+            </button>
+            {supportsTorch && (
+              <button
+                onClick={toggleTorch}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition ${
+                  torch
+                    ? "bg-gradient-crystal text-primary-foreground"
+                    : "glass-crystal text-muted-foreground"
+                }`}
+              >
+                {torch ? <Zap className="h-4 w-4" /> : <ZapOff className="h-4 w-4" />}
+                {label("Luz", "Light")}
+              </button>
+            )}
+          </div>
+
+          {macro && (
+            <p className="text-center text-[11px] text-muted-foreground">
+              {label(
+                "Modo macro: acerca el objeto 5–10 cm y encuádralo en el marco.",
+                "Macro mode: bring the item 5–10 cm close and frame it in the box."
+              )}
+            </p>
+          )}
+
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="flex-1 rounded-lg bg-white/10 py-3 font-semibold text-white transition hover:bg-white/20"
+              className="glass-crystal flex-1 rounded-xl py-3 font-semibold text-muted-foreground"
             >
               <X className="mx-auto h-5 w-5" />
             </button>
             <button
               onClick={capturePhoto}
-              className="flex-1 rounded-lg bg-gradient-crystal py-3 font-semibold text-primary-foreground transition hover:shadow-lg"
+              className="flex-1 rounded-xl bg-gradient-crystal py-3 font-semibold text-primary-foreground transition hover:shadow-lg"
             >
               <Check className="mx-auto h-5 w-5" />
             </button>
           </div>
-
-          {!supportsZoom && zoom !== 1 && (
-            <p className="text-center text-xs text-muted-foreground">
-              ℹ️ Zoom digital activo / Digital zoom active
-            </p>
-          )}
         </div>
       )}
 
-      {/* Hidden Canvas for Photo Capture */}
       <canvas ref={canvasRef} className="hidden" />
     </div>
   );
 }
-
