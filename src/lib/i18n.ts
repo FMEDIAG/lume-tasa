@@ -70,6 +70,10 @@ export const translations = {
     exportError: "No se pudo exportar el historial",
     importOk: (n: number) => `${n} tasación${n === 1 ? "" : "es"} importada${n === 1 ? "" : "s"}`,
     importError: "No se pudo importar el archivo",
+    previous: "Anterior",
+    next: "Siguiente",
+    page: "Página",
+    of: "de",
   },
   en: {
     appName: "Lume",
@@ -140,6 +144,10 @@ export const translations = {
     exportError: "Could not export history",
     importOk: (n: number) => `${n} appraisal${n === 1 ? "" : "s"} imported`,
     importError: "Could not import the file",
+    previous: "Previous",
+    next: "Next",
+    page: "Page",
+    of: "of",
   },
 } as const;
 
