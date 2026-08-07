@@ -51,8 +51,10 @@ function HistoryPage() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [lang, setLang] = useState<Lang>("es");
   const [activeTab, setActiveTab] = useState<string>("all");
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const ITEMS_PER_PAGE = 10;
 
   const handleExport = async () => {
     try {
