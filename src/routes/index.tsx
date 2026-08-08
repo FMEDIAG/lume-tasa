@@ -2,7 +2,7 @@ import { toast } from "sonner";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Camera, Images, Sparkles, History, Trash2, Save, Check, Globe, Focus } from "lucide-react";
+import { Camera, Images, Sparkles, History, Trash2, Save, Check, Globe } from "lucide-react";
 import { CameraCapture } from "@/components/CameraCapture";
 
 import { valuateItem } from "@/lib/valuate.functions";
@@ -94,9 +94,8 @@ function Index() {
   >(null);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
-  const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
-  const [macroOpen, setMacroOpen] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
 
   const valuate = useServerFn(valuateItem);
   const detect = useServerFn(detectCategory);
@@ -254,20 +253,13 @@ async function onSave() {
           <section className="mt-8">
             <p className="text-sm leading-relaxed text-muted-foreground">{t.subtitle}</p>
 
-            <div className="mt-6 grid grid-cols-3 gap-3">
+            <div className="mt-6 grid grid-cols-2 gap-3">
               <button
-                onClick={() => cameraRef.current?.click()}
+                onClick={() => setCameraOpen(true)}
                 className="glass-crystal group flex flex-col items-center justify-center gap-2 rounded-2xl px-3 py-6 transition hover:scale-[1.02]"
               >
                 <Camera className="h-7 w-7 text-primary transition group-hover:scale-110" />
                 <span className="text-xs font-medium text-foreground">{t.takePhoto}</span>
-              </button>
-              <button
-                onClick={() => setMacroOpen(true)}
-                className="glass-crystal group flex flex-col items-center justify-center gap-2 rounded-2xl px-3 py-6 transition hover:scale-[1.02]"
-              >
-                <Focus className="h-7 w-7 text-primary transition group-hover:scale-110" />
-                <span className="text-xs font-medium text-foreground">{t.macroPhoto}</span>
               </button>
               <button
                 onClick={() => galleryRef.current?.click()}
@@ -277,25 +269,17 @@ async function onSave() {
                 <span className="text-xs font-medium text-foreground">{t.fromGallery}</span>
               </button>
             </div>
-            {macroOpen && (
+            {cameraOpen && (
               <CameraCapture
                 t={{ ...t, lang }}
-                onClose={() => setMacroOpen(false)}
+                onClose={() => setCameraOpen(false)}
                 onCapture={(dataUrl) => {
                   setPhotos((p) => [...p, { id: crypto.randomUUID(), dataUrl }].slice(0, 3));
-                  setMacroOpen(false);
+                  setCameraOpen(false);
                 }}
               />
             )}
 
-            <input
-              ref={cameraRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden"
-              onChange={(e) => onFiles(e.target.files)}
-            />
             <input
               ref={galleryRef}
               type="file"
