@@ -94,9 +94,8 @@ function Index() {
   >(null);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
-  const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
-  const [macroOpen, setMacroOpen] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
 
   const valuate = useServerFn(valuateItem);
   const detect = useServerFn(detectCategory);
