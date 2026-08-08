@@ -49,6 +49,11 @@ export const translations = {
     identification: "Identificación",
     priceRange: "Rango de precio",
     confidence: "Confianza",
+    confidenceLevels: {
+      high: "Alta",
+      medium: "Media",
+      low: "Baja",
+    },
     sources: "Fuentes consultadas",
     notes: "Notas del tasador",
     saveHistory: "Guardar en historial",
@@ -125,6 +130,11 @@ export const translations = {
     identification: "Identification",
     priceRange: "Price range",
     confidence: "Confidence",
+    confidenceLevels: {
+      high: "High",
+      medium: "Medium",
+      low: "Low",
+    },
     sources: "Sources consulted",
     notes: "Appraiser notes",
     saveHistory: "Save to history",
