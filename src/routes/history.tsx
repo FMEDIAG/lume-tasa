@@ -255,7 +255,7 @@ function HistoryPage() {
                           </p>
                         </div>
                         <p className="text-[11px] font-medium uppercase text-primary">
-                          {t.confidence}: {v.confidence}
+                          {t.confidence}: {t.confidenceLevels[v.confidence as keyof typeof t.confidenceLevels] ?? v.confidence}
                         </p>
                         {v.notes && (
                           <div>

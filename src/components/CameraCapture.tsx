@@ -175,8 +175,8 @@ export function CameraCapture({ onCapture, onClose, t }: CameraCaptureProps) {
         />
 
         {!isStreaming && !error && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <p className="text-sm text-muted-foreground">
+          <div className="absolute inset-0 flex items-center justify-center bg-background">
+            <p className="text-sm font-semibold text-primary">
               {label("Iniciando cámara…", "Starting camera…")}
             </p>
           </div>
@@ -189,9 +189,9 @@ export function CameraCapture({ onCapture, onClose, t }: CameraCaptureProps) {
         )}
 
         {error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/90 px-6">
+          <div className="absolute inset-0 flex items-center justify-center bg-background px-6">
             <div className="glass-crystal rounded-2xl p-5 text-center">
-              <p className="text-sm font-medium text-destructive">{error}</p>
+              <p className="text-sm font-semibold text-primary">{error}</p>
               <button
                 onClick={onClose}
                 className="mt-4 rounded-xl bg-gradient-crystal px-4 py-2 text-sm font-semibold text-primary-foreground"
