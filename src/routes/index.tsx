@@ -2,7 +2,7 @@ import { toast } from "sonner";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Camera, Images, Sparkles, History, Trash2, Save, Check, Globe, Focus } from "lucide-react";
+import { Camera, Images, Sparkles, History, Trash2, Save, Check, Globe } from "lucide-react";
 import { CameraCapture } from "@/components/CameraCapture";
 
 import { valuateItem } from "@/lib/valuate.functions";
