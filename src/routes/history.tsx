@@ -54,7 +54,7 @@ function HistoryPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const fileRef = useRef<HTMLInputElement | null>(null);
-  const ITEMS_PER_PAGE = 4;
+  const ITEMS_PER_PAGE = 3;
 
   const handleExport = async () => {
     try {
