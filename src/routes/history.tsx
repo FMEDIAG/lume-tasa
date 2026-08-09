@@ -291,7 +291,7 @@ function HistoryPage() {
                                   href={sourceUrl(s, v.title)}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1.5 text-[11px] leading-tight text-primary transition hov[...]
+                                  className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1.5 text-[11px] leading-tight text-primary transition hover:bg-primary/15"
                                 >
                                   {s}
                                   <ExternalLink className="h-3 w-3 shrink-0" />
@@ -339,4 +339,3 @@ function HistoryPage() {
     </div>
   );
 }
-
