@@ -43,9 +43,7 @@ export const Route = createFileRoute("/history")({
   }),
   component: HistoryPage,
 });
-
 const fmt = formatNumber;
-
 function HistoryPage() {
   const [items, setItems] = useState<Valuation[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
