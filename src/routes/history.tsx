@@ -305,7 +305,7 @@ function HistoryPage() {
               })}
             </ul>
 
-            {totalPages > 1 && (
+            {filtered.length >= ITEMS_PER_PAGE && (
               <nav
                 aria-label={lang === "es" ? "Paginación del historial" : "History pagination"}
                 className="mt-6 flex items-center justify-between gap-3"
