@@ -1,13 +1,14 @@
-import { createRootRoute, Outlet } from "@tanstack/react-router";
+import { createRootRoute, Outlet, ScrollRestoration } from "@tanstack/react-router";
 
 export const Route = createRootRoute({
-  component: RootComponent,
+  component: RootLayout,
 });
 
-function RootComponent() {
+function RootLayout() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 antialiased">
       <Outlet />
+      <ScrollRestoration />
     </div>
   );
 }
