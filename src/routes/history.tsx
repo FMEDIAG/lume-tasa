@@ -43,7 +43,9 @@ export const Route = createFileRoute("/history")({
   }),
   component: HistoryPage,
 });
+
 const fmt = formatNumber;
+
 function HistoryPage() {
   const [items, setItems] = useState<Valuation[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -72,7 +74,6 @@ function HistoryPage() {
       toast.error(e instanceof Error ? e.message : t.importError);
     }
   };
-
 
   useEffect(() => {
     const read = () => {
@@ -173,8 +174,9 @@ function HistoryPage() {
             {lang === "es" ? "Cargando…" : "Loading…"}
           </p>
         ) : paginatedItems.length === 0 ? (
-          <p className="mt-16 text-center text-sm text-muted-foreground">{t.empty}</p>
-
+          <div className="glass-crystal mt-12 rounded-2xl p-8 text-center">
+            <p className="text-sm text-muted-foreground">{t.empty}</p>
+          </div>
         ) : (
           <>
             <ul className="mt-6 space-y-3">
@@ -221,10 +223,10 @@ function HistoryPage() {
                           {new Date(v.createdAt).toLocaleString(locale)}
                         </p>
                         <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                          <span className="rounded-full bg-primary/15 px-2 py-1 leading-tight text-primary">
+                          <span className="rounded-full border border-primary/30 bg-primary/15 px-2.5 py-1 font-semibold leading-tight text-primary">
                             €{fmt(v.priceEurMin)}–€{fmt(v.priceEurMax)}
                           </span>
-                          <span className="rounded-full bg-accent/15 px-2 py-1 leading-tight text-accent">
+                          <span className="rounded-full border border-accent/30 bg-accent/15 px-2.5 py-1 font-semibold leading-tight text-accent">
                             ${fmt(v.priceUsdMin)}–${fmt(v.priceUsdMax)}
                           </span>
                         </div>
@@ -256,8 +258,8 @@ function HistoryPage() {
                           {t.confidence}: {t.confidenceLevels[v.confidence as keyof typeof t.confidenceLevels] ?? v.confidence}
                         </p>
                         {v.notes && (
-                          <div>
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          <div className="rounded-xl border border-primary/25 bg-primary/10 p-3 backdrop-blur-md">
+                            <p className="text-[10px] font-bold uppercase tracking-wider text-primary">
                               {t.notes}
                             </p>
                             {extractPricePerSqm(v.notes).length > 0 && (
@@ -265,14 +267,14 @@ function HistoryPage() {
                                 {extractPricePerSqm(v.notes).map((p) => (
                                   <span
                                     key={p}
-                                    className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold tabular-nums leading-tight text-primary"
+                                    className="rounded-full border border-primary/40 bg-primary/20 px-2.5 py-1 text-[11px] font-semibold tabular-nums leading-tight text-primary"
                                   >
                                     {p}
                                   </span>
                                 ))}
                               </div>
                             )}
-                            <p className="mt-1 text-sm leading-relaxed text-foreground/80">
+                            <p className="mt-1.5 text-xs leading-relaxed text-foreground/90">
                               {v.notes}
                             </p>
                           </div>
@@ -305,7 +307,7 @@ function HistoryPage() {
               })}
             </ul>
 
-            {filtered.length >= ITEMS_PER_PAGE && (
+            {totalPages > 1 && (
               <nav
                 aria-label={lang === "es" ? "Paginación del historial" : "History pagination"}
                 className="mt-6 flex items-center justify-between gap-3"
