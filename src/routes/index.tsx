@@ -18,12 +18,22 @@ import {
   Printer,
   Plus,
   Trash2,
+  AlertCircle,
 } from "lucide-react";
-import { LumeAlert } from "../components/ui/lume-alert";
 
 export const Route = createFileRoute("/")({
   component: LumeValuationApp,
 });
+
+// Componente de alerta local para evitar errores de importación en SSR
+function LumeAlert({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs font-semibold text-red-400 backdrop-blur-md">
+      <AlertCircle className="h-4 w-4 shrink-0 text-red-400" />
+      <div>{children}</div>
+    </div>
+  );
+}
 
 function LumeValuationApp() {
   const [isMounted, setIsMounted] = useState(false);
@@ -43,7 +53,7 @@ function LumeValuationApp() {
   // History State
   const [history, setHistory] = useState<ValuationRecord[]>([]);
 
-  // Garantizar montaje en cliente (protección total contra SSR crash)
+  // Garantizar hidratación segura en cliente
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -55,8 +65,12 @@ function LumeValuationApp() {
   }, [activeTab, isMounted]);
 
   const loadHistory = async () => {
-    const records = await getAllValuations();
-    setHistory(records.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+    try {
+      const records = await getAllValuations();
+      setHistory(records.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+    } catch {
+      // Manejo silencioso en caso de error de lectura DB
+    }
   };
 
   const formatCurrency = (amount: number) =>
@@ -151,7 +165,7 @@ function LumeValuationApp() {
     }
   };
 
-  // Si se está ejecutando en el servidor (SSR), devolvemos un contenedor limpio para evitar el Error 500
+  // Renderizado inicial en servidor (SSR)
   if (!isMounted) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -162,9 +176,14 @@ function LumeValuationApp() {
 
   return (
     <div className="relative min-h-screen bg-background text-foreground">
-      {/* Background Glow */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[400px] bg-[radial-gradient(ellipse_at_top,rgba(217,119,6,0.15),transparent_70%)] blur-3xl" />
-      
+      {/* Halo de fondo con inline style para evitar errores de compilación CSS */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-[400px] blur-3xl opacity-20"
+        style={{
+          background: "radial-gradient(ellipse at top, #d97706, transparent 70%)",
+        }}
+      />
+
       <div className="relative mx-auto max-w-4xl px-4 py-8 sm:px-8 space-y-6">
         {/* Header */}
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-primary/20 pb-5">
@@ -172,7 +191,7 @@ function LumeValuationApp() {
             <h1 className="text-2xl font-black tracking-tight sm:text-3xl text-gradient-gold">
               LUME <span className="text-primary font-normal">AI</span>
             </h1>
-            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
               Sistema Inteligente de Valuación Inmobiliaria
             </p>
           </div>
@@ -274,13 +293,13 @@ function LumeValuationApp() {
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 pt-2">
                     {images.map((img) => (
                       <div key={img.id} className="relative glass-crystal rounded-xl p-3 text-center space-y-1.5">
-                        <span className="text-[10px] font-bold block truncate text-primary">
+                        <span className="text-xs font-bold block truncate text-primary">
                           {img.isMacro ? "🔍 Macro Zoom" : "📷 Estándar"}
                         </span>
                         <button
                           type="button"
                           onClick={() => handleRemoveImage(img.id)}
-                          className="text-destructive hover:text-destructive/80 text-xs font-semibold flex items-center justify-center gap-1 w-full pt-1 transition"
+                          className="text-red-400 hover:text-red-300 text-xs font-semibold flex items-center justify-center gap-1 w-full pt-1 transition"
                         >
                           <Trash2 className="h-3.5 w-3.5" /> Eliminar
                         </button>
@@ -290,16 +309,12 @@ function LumeValuationApp() {
                 )}
               </div>
 
-              {error && (
-                <LumeAlert variant="error" prominence="normal">
-                  {error}
-                </LumeAlert>
-              )}
+              {error && <LumeAlert>{error}</LumeAlert>}
 
               <button
                 type="submit"
                 disabled={isAnalyzing}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-primary-foreground font-bold py-3.5 px-4 shadow-lg transition active:scale-[0.99] disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 font-bold py-3.5 px-4 shadow-lg transition active:scale-95 disabled:opacity-50"
               >
                 {isAnalyzing ? (
                   <>
@@ -320,7 +335,7 @@ function LumeValuationApp() {
               <div className="glass-crystal space-y-6 rounded-2xl p-6 shadow-2xl border border-primary/40">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-primary/20 pb-4">
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
+                    <span className="text-xs font-bold uppercase tracking-widest text-primary">
                       Registro Guardado en LumeDB
                     </span>
                     <h3 className="text-xl font-bold text-foreground">ID: {valuationResult.id}</h3>
@@ -385,7 +400,7 @@ function LumeValuationApp() {
                 <div key={item.id} className="glass-crystal rounded-2xl p-5 space-y-3 shadow-md">
                   <div className="flex items-center justify-between border-b border-primary/20 pb-2">
                     <span className="font-bold text-primary text-xs">{item.id}</span>
-                    <span className="text-[11px] text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       {new Date(item.createdAt).toLocaleDateString("es-ES")}
                     </span>
                   </div>
@@ -396,7 +411,7 @@ function LumeValuationApp() {
                     </div>
                     <div className="text-right">
                       <p className="text-base font-black text-gradient-gold">{formatCurrency(item.totalValuation)}</p>
-                      <p className="text-[10px] text-primary font-semibold">{item.exactPricePerM2} €/m²</p>
+                      <p className="text-xs text-primary font-semibold">{item.exactPricePerM2} €/m²</p>
                     </div>
                   </div>
                 </div>
