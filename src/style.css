@@ -106,7 +106,6 @@
   --foreground: oklch(0.96 0.02 90);
 }
 
-
 @layer base {
   * {
     border-color: var(--color-border);
@@ -157,7 +156,6 @@
     position: relative;
     z-index: 1;
   }
-
 }
 
 @utility text-gradient-gold {
@@ -187,7 +185,6 @@
   box-shadow: var(--shadow-glow);
 }
 
-
 @keyframes shimmer {
   0%,
   100% {
@@ -202,4 +199,33 @@
 
 @utility animate-shimmer {
   animation: shimmer 3s ease-in-out infinite;
-  }
+}
+
+/* Integración de notificaciones Sonner al estilo Lume cristal/dorado */
+[data-sonner-toaster] [data-sonner-toast] {
+  background: oklch(0.18 0.06 260 / 80%) !important;
+  backdrop-filter: blur(24px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(160%) !important;
+  border: 1px solid oklch(0.85 0.16 85 / 35%) !important;
+  border-radius: var(--radius) !important;
+  color: oklch(0.96 0.02 90) !important;
+  box-shadow: var(--shadow-crystal) !important;
+  font-family: inherit !important;
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type="success"] [data-icon] {
+  color: oklch(0.85 0.16 85) !important;
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type="error"] [data-icon] {
+  color: oklch(0.62 0.22 25) !important;
+}
+
+[data-sonner-toaster] [data-sonner-toast] [data-title] {
+  color: oklch(0.96 0.02 90) !important;
+  font-weight: 600 !important;
+}
+
+[data-sonner-toaster] [data-sonner-toast] [data-description] {
+  color: oklch(0.82 0.04 90) !important;
+}
