@@ -15,11 +15,11 @@ import {
   Sparkles,
   Calculator,
   CheckCircle2,
-  AlertCircle,
   FileText,
   Loader2,
   FileDown,
 } from "lucide-react";
+import { LumeAlert } from "./ui/lume-alert";
 
 export function ValuationWorkspace() {
   const [assetType, setAssetType] = useState("Ático Residencial");
@@ -111,9 +111,9 @@ export function ValuationWorkspace() {
             {
               step: 4,
               title: "Cálculo Matemático Final",
-              description: `${areaNum.toFixed(2)} m² × 8.305,67 €/m² = ${formatExactCurrency(
-                mockTotalValuation
-              )}. Resultado sin redondeo.`,
+              description: `${areaNum.toFixed(2)} m² × 8.305,67 €/m² = ${
+                formatExactCurrency(mockTotalValuation)
+              }. Resultado sin redondeo.`,
             },
           ],
           images,
@@ -224,16 +224,15 @@ export function ValuationWorkspace() {
         </div>
 
         {error && (
-          <div className="flex items-center gap-2 rounded-xl bg-red-500/10 p-3 text-xs font-semibold text-red-500 border border-red-500/20">
-            <AlertCircle className="h-4 w-4 shrink-0" />
-            <span>{error}</span>
-          </div>
+          <LumeAlert variant="error" prominence="normal">
+            {error}
+          </LumeAlert>
         )}
 
         <button
           type="submit"
           disabled={isAnalyzing}
-          className="w-full flex items-center justify-center gap-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold py-3.5 px-4 shadow-lg transition-all active:scale-98 disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold py-3.5 px-4 shadow-lg transition-all active:scale-98 disabled:opacit[...]"
         >
           {isAnalyzing ? (
             <>
@@ -260,7 +259,7 @@ export function ValuationWorkspace() {
                 ID: {valuationResult.id}
               </h3>
             </div>
-            
+
             <div className="flex items-center gap-2">
               <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-500 border border-emerald-500/20">
                 <CheckCircle2 className="h-3.5 w-3.5" />

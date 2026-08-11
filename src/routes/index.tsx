@@ -13,7 +13,6 @@ import {
   Sparkles,
   Calculator,
   CheckCircle2,
-  AlertCircle,
   FileText,
   Loader2,
   History,
@@ -22,6 +21,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
+import { LumeAlert } from "../components/ui/lume-alert";
 
 export const Route = createFileRoute("/")({
   component: LumeValuationApp,
@@ -67,7 +67,7 @@ function LumeValuationApp() {
   const handleAddSampleImage = (isMacro: boolean) => {
     const newImage: StoredImage = {
       id: `img-${Date.now()}`,
-      dataUrl: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'><rect width='400' height='300' fill='%230f172a'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%2338bdf8' font-size='20' font-family='sans-serif'>Evidencia Lume AI</text></svg>",
+      dataUrl: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'><rect width='400' height='300' fill='%230f172a'/><text x='50%' y='50%[...]",
       base64: "",
       zoom: isMacro ? 2.5 : 1.0,
       isMacro,
@@ -274,16 +274,15 @@ function LumeValuationApp() {
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 rounded-xl bg-red-500/10 p-3 text-xs font-semibold text-red-500 border border-red-500/20">
-                  <AlertCircle className="h-4 w-4 shrink-0" />
-                  <span>{error}</span>
-                </div>
+                <LumeAlert variant="error" prominence="normal">
+                  {error}
+                </LumeAlert>
               )}
 
               <button
                 type="submit"
                 disabled={isAnalyzing}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold py-3.5 px-4 shadow-lg transition active:scale-98 disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold py-3.5 px-4 shadow-lg transition active:scale-98 disabled:opac[...]"
               >
                 {isAnalyzing ? (
                   <>

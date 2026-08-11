@@ -14,7 +14,7 @@ const lumeAlertVariants = cva(
   {
     variants: {
       variant: {
-        // Erro: Destruidor rojo oscuro com brilho coral
+        // Erro: Rojo coral com brilho
         error:
           "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400 [&>svg]:text-red-500 [&>svg]:dark:text-red-400",
         // Sucesso: Esmeralda radiante
@@ -23,7 +23,7 @@ const lumeAlertVariants = cva(
         // Info/Default: Céu luminoso (azul LUME)
         info:
           "border-sky-500/30 bg-sky-500/10 text-sky-600 dark:text-sky-400 [&>svg]:text-sky-500 [&>svg]:dark:text-sky-400",
-        // Aviso: Âmbar luxuoso (tom quente)
+        // Aviso: Âmbar luxuoso
         warning:
           "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 [&>svg]:text-amber-500 [&>svg]:dark:text-amber-400",
         // Neutral: Conforme com o tema Lume
