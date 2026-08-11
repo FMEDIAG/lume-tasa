@@ -8,8 +8,6 @@ import {
 } from "../lib/db";
 import {
   Building2,
-  MapPin,
-  Ruler,
   Sparkles,
   Calculator,
   CheckCircle2,
@@ -17,7 +15,7 @@ import {
   Loader2,
   History,
   Camera,
-  FileDown,
+  Printer,
   Plus,
   Trash2,
 } from "lucide-react";
@@ -47,7 +45,7 @@ function LumeValuationApp() {
 
   useEffect(() => {
     if (activeTab === "history") {
-      loadHistory();
+      void loadHistory();
     }
   }, [activeTab]);
 
@@ -67,7 +65,7 @@ function LumeValuationApp() {
   const handleAddSampleImage = (isMacro: boolean) => {
     const newImage: StoredImage = {
       id: `img-${Date.now()}`,
-      dataUrl: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'><rect width='400' height='300' fill='%230f172a'/><text x='50%' y='50%[...]",
+      dataUrl: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'><rect width='400' height='300' fill='%230f172a'/></svg>",
       base64: "",
       zoom: isMacro ? 2.5 : 1.0,
       isMacro,
@@ -135,37 +133,38 @@ function LumeValuationApp() {
 
       await saveValuationRecord(newRecord);
       setValuationResult(newRecord);
-    } catch (err: any) {
+    } catch {
       setError("Error al guardar la tasación.");
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  const handlePrintPDF = (record: ValuationRecord) => {
+  const handlePrint = () => {
     window.print();
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-4 sm:p-8 font-sans">
-      <div className="mx-auto max-w-4xl space-y-6">
+    <div className="relative min-h-screen">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[400px] bg-[radial-gradient(ellipse_at_top,oklch(0.72_0.2_45/30%),transparent_70%)] blur-3xl" />
+      <div className="relative mx-auto max-w-4xl px-4 py-8 sm:px-8 space-y-6">
         {/* Header */}
-        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
+        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-primary/20 pb-5">
           <div>
-            <h1 className="text-2xl font-black tracking-tight sm:text-3xl">
-              LUME <span className="text-sky-500">AI</span>
+            <h1 className="text-2xl font-black tracking-tight sm:text-3xl text-gradient-gold">
+              LUME <span className="text-primary font-normal">AI</span>
             </h1>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">
               Sistema Inteligente de Valuación Inmobiliaria
             </p>
           </div>
 
-          <div className="flex items-center gap-2 rounded-xl bg-muted p-1">
+          <div className="glass-crystal flex items-center gap-1.5 rounded-full p-1">
             <button
               onClick={() => setActiveTab("workspace")}
-              className={`rounded-lg px-4 py-2 text-xs font-bold transition ${
+              className={`rounded-full px-4 py-2 text-xs font-semibold transition ${
                 activeTab === "workspace"
-                  ? "bg-background text-foreground shadow-sm"
+                  ? "border border-primary/60 bg-primary/20 text-primary"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -173,9 +172,9 @@ function LumeValuationApp() {
             </button>
             <button
               onClick={() => setActiveTab("history")}
-              className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold transition ${
+              className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition ${
                 activeTab === "history"
-                  ? "bg-background text-foreground shadow-sm"
+                  ? "border border-primary/60 bg-primary/20 text-primary"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -188,9 +187,9 @@ function LumeValuationApp() {
         {/* Tab 1: Workspace */}
         {activeTab === "workspace" && (
           <div className="space-y-6">
-            <form onSubmit={handleCalculate} className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-sm">
-              <h2 className="text-base font-bold flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-sky-500" />
+            <form onSubmit={handleCalculate} className="glass-crystal space-y-6 rounded-2xl p-6 shadow-xl">
+              <h2 className="text-base font-semibold flex items-center gap-2 text-gradient-gold">
+                <Building2 className="h-5 w-5 text-primary" />
                 1. Datos Principales
               </h2>
 
@@ -201,7 +200,7 @@ function LumeValuationApp() {
                     type="text"
                     value={assetType}
                     onChange={(e) => setAssetType(e.target.value)}
-                    className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-sky-500 outline-none"
+                    className="w-full rounded-xl border border-primary/30 bg-background/50 px-3 py-2 text-sm font-medium text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                   />
                 </div>
 
@@ -211,7 +210,7 @@ function LumeValuationApp() {
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-sky-500 outline-none"
+                    className="w-full rounded-xl border border-primary/30 bg-background/50 px-3 py-2 text-sm font-medium text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                   />
                 </div>
 
@@ -222,15 +221,15 @@ function LumeValuationApp() {
                     step="0.01"
                     value={usefulArea}
                     onChange={(e) => setUsefulArea(e.target.value === "" ? "" : parseFloat(e.target.value))}
-                    className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-sky-500 outline-none"
+                    className="w-full rounded-xl border border-primary/30 bg-background/50 px-3 py-2 text-sm font-medium text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                   />
                 </div>
               </div>
 
               {/* Captura de Evidencias */}
-              <div className="pt-4 border-t border-border space-y-3">
-                <h2 className="text-base font-bold flex items-center gap-2">
-                  <Camera className="h-5 w-5 text-sky-500" />
+              <div className="pt-4 border-t border-primary/20 space-y-3">
+                <h2 className="text-base font-semibold flex items-center gap-2 text-gradient-gold">
+                  <Camera className="h-5 w-5 text-primary" />
                   2. Evidencias e Inspección Fotográfica
                 </h2>
 
@@ -238,15 +237,15 @@ function LumeValuationApp() {
                   <button
                     type="button"
                     onClick={() => handleAddSampleImage(false)}
-                    className="flex items-center gap-1.5 rounded-xl border border-input bg-background px-3.5 py-2 text-xs font-bold hover:bg-muted transition"
+                    className="glass-crystal flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold text-primary transition hover:bg-primary/15"
                   >
-                    <Plus className="h-4 w-4 text-sky-500" />
+                    <Plus className="h-4 w-4 text-primary" />
                     Añadir Foto Estándar
                   </button>
                   <button
                     type="button"
                     onClick={() => handleAddSampleImage(true)}
-                    className="flex items-center gap-1.5 rounded-xl border border-sky-500/30 bg-sky-500/10 px-3.5 py-2 text-xs font-bold text-sky-500 hover:bg-sky-500/20 transition"
+                    className="glass-crystal flex items-center gap-1.5 rounded-full border border-primary/50 bg-primary/20 px-3.5 py-2 text-xs font-semibold text-primary transition hover:bg-primary/30"
                   >
                     <Sparkles className="h-4 w-4" />
                     Añadir Captura Macro
@@ -256,16 +255,16 @@ function LumeValuationApp() {
                 {images.length > 0 && (
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 pt-2">
                     {images.map((img) => (
-                      <div key={img.id} className="relative group rounded-xl overflow-hidden border border-border bg-muted p-2 text-center space-y-1">
-                        <span className="text-[10px] font-bold block truncate">
+                      <div key={img.id} className="relative glass-crystal rounded-xl p-3 text-center space-y-1.5">
+                        <span className="text-[10px] font-bold block truncate text-primary">
                           {img.isMacro ? "🔍 Macro Zoom" : "📷 Estándar"}
                         </span>
                         <button
                           type="button"
                           onClick={() => handleRemoveImage(img.id)}
-                          className="text-red-500 hover:text-red-700 text-xs font-bold flex items-center justify-center gap-1 w-full pt-1"
+                          className="text-destructive hover:text-destructive/80 text-xs font-semibold flex items-center justify-center gap-1 w-full pt-1 transition"
                         >
-                          <Trash2 className="h-3 w-3" /> Eliminar
+                          <Trash2 className="h-3.5 w-3.5" /> Eliminar
                         </button>
                       </div>
                     ))}
@@ -282,7 +281,7 @@ function LumeValuationApp() {
               <button
                 type="submit"
                 disabled={isAnalyzing}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold py-3.5 px-4 shadow-lg transition active:scale-98 disabled:opac[...]"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-primary-foreground font-bold py-3.5 px-4 shadow-lg transition active:scale-[0.99] disabled:opacity-50"
               >
                 {isAnalyzing ? (
                   <>
@@ -300,52 +299,52 @@ function LumeValuationApp() {
 
             {/* Resultado de la Tasación */}
             {valuationResult && (
-              <div className="space-y-6 rounded-2xl border border-sky-500/30 bg-card p-6 shadow-xl ring-1 ring-sky-500/20">
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+              <div className="glass-crystal space-y-6 rounded-2xl p-6 shadow-2xl border border-primary/40">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-primary/20 pb-4">
                   <div>
-                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-sky-500">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-primary">
                       Registro Guardado en LumeDB
                     </span>
-                    <h3 className="text-xl font-black">ID: {valuationResult.id}</h3>
+                    <h3 className="text-xl font-bold text-foreground">ID: {valuationResult.id}</h3>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-500 border border-emerald-500/20">
+                    <span className="flex items-center gap-1 rounded-full border border-primary/30 bg-primary/15 px-3 py-1 text-xs font-bold text-primary">
                       <CheckCircle2 className="h-3.5 w-3.5" />
                       Confianza: {(valuationResult.confidenceScore * 100).toFixed(1)}%
                     </span>
                     <button
-                      onClick={() => handlePrintPDF(valuationResult)}
-                      className="flex items-center gap-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 px-3.5 py-2 text-xs font-bold text-white shadow transition"
+                      onClick={handlePrint}
+                      className="glass-crystal flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold text-primary transition hover:bg-primary/20"
                     >
-                      <FileDown className="h-4 w-4" />
-                      <span>Exportar Informe</span>
+                      <Printer className="h-4 w-4" />
+                      <span>Imprimir Informe</span>
                     </button>
                   </div>
                 </div>
 
-                <div className="rounded-xl border-l-4 border-l-sky-500 bg-sky-500/5 p-5">
+                <div className="rounded-xl border border-primary/30 bg-primary/10 p-5 backdrop-blur-md">
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     VALOR ESTIMADO DE MERCADO
                   </span>
-                  <div className="text-3xl font-black sm:text-4xl my-1">
+                  <div className="text-3xl font-black sm:text-4xl my-1 text-gradient-gold">
                     {formatCurrency(valuationResult.totalValuation)}
                   </div>
-                  <p className="text-xs font-bold text-sky-600 dark:text-sky-400">
+                  <p className="text-xs font-semibold text-primary">
                     Métrico Exacto: {valuationResult.exactPricePerM2.toLocaleString("es-ES")} €/m² ({valuationResult.usefulArea} m²)
                   </p>
                 </div>
 
                 <div className="space-y-3">
-                  <h4 className="text-sm font-bold flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-sky-500" />
+                  <h4 className="text-sm font-semibold flex items-center gap-2 text-gradient-gold">
+                    <FileText className="h-4 w-4 text-primary" />
                     Razonamiento Multimodal (Chain of Thought)
                   </h4>
                   <div className="space-y-2">
                     {valuationResult.reasoningSteps.map((step) => (
-                      <div key={step.step} className="rounded-xl border border-border bg-background/50 p-3 text-xs space-y-1">
-                        <div className="font-bold text-sky-500">PASO {step.step}: {step.title}</div>
-                        <p className="text-muted-foreground">{step.description}</p>
+                      <div key={step.step} className="rounded-xl border border-primary/20 bg-background/40 p-3 text-xs space-y-1">
+                        <div className="font-semibold text-primary">PASO {step.step}: {step.title}</div>
+                        <p className="text-muted-foreground leading-relaxed">{step.description}</p>
                       </div>
                     ))}
                   </div>
@@ -358,28 +357,28 @@ function LumeValuationApp() {
         {/* Tab 2: History */}
         {activeTab === "history" && (
           <div className="space-y-4">
-            <h2 className="text-lg font-bold">Historial de Tasaciones Guardadas</h2>
+            <h2 className="text-lg font-bold text-gradient-gold">Historial de Tasaciones Guardadas</h2>
             {history.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border p-8 text-center text-xs text-muted-foreground">
+              <div className="glass-crystal rounded-2xl p-8 text-center text-xs text-muted-foreground">
                 No hay registros en la base de datos todavía. Realiza una tasación primero.
               </div>
             ) : (
               history.map((item) => (
-                <div key={item.id} className="rounded-2xl border border-border bg-card p-5 space-y-3 shadow-sm">
-                  <div className="flex items-center justify-between border-b border-border/50 pb-2">
-                    <span className="font-black text-sky-500 text-xs">{item.id}</span>
+                <div key={item.id} className="glass-crystal rounded-2xl p-5 space-y-3 shadow-md">
+                  <div className="flex items-center justify-between border-b border-primary/20 pb-2">
+                    <span className="font-bold text-primary text-xs">{item.id}</span>
                     <span className="text-[11px] text-muted-foreground">
                       {new Date(item.createdAt).toLocaleDateString("es-ES")}
                     </span>
                   </div>
                   <div className="flex justify-between items-end">
                     <div>
-                      <p className="text-xs font-bold">{item.assetType}</p>
+                      <p className="text-xs font-bold text-foreground">{item.assetType}</p>
                       <p className="text-xs text-muted-foreground">{item.location} ({item.usefulArea} m²)</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-base font-black">{formatCurrency(item.totalValuation)}</p>
-                      <p className="text-[10px] text-sky-500 font-bold">{item.exactPricePerM2} €/m²</p>
+                      <p className="text-base font-black text-gradient-gold">{formatCurrency(item.totalValuation)}</p>
+                      <p className="text-[10px] text-primary font-semibold">{item.exactPricePerM2} €/m²</p>
                     </div>
                   </div>
                 </div>
