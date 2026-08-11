@@ -1,5 +1,5 @@
 import { createRootRoute, Outlet, ScrollRestoration } from "@tanstack/react-router";
-import "../index.css";
+import "../app.css";
 
 export const Route = createRootRoute({
   component: RootLayout,
