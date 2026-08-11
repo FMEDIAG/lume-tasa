@@ -28,8 +28,7 @@ const DB_NAME = "LumeValuationsDB";
 const STORE_NAME = "valuations";
 
 const initDB = (): Promise<IDBDatabase | null> => {
-  return new Promise((resolve, reject) => {
-    // Protección contra ejecución en Servidor (SSR)
+  return new Promise((resolve) => {
     if (typeof window === "undefined" || !("indexedDB" in window)) {
       resolve(null);
       return;
@@ -37,7 +36,7 @@ const initDB = (): Promise<IDBDatabase | null> => {
 
     const request = indexedDB.open(DB_NAME, 1);
 
-    request.onerror = () => reject(request.error);
+    request.onerror = () => resolve(null);
     request.onsuccess = () => resolve(request.result);
 
     request.onupgradeneeded = (event) => {
@@ -51,7 +50,7 @@ const initDB = (): Promise<IDBDatabase | null> => {
 
 export const saveValuationRecord = async (record: ValuationRecord): Promise<void> => {
   const db = await initDB();
-  if (!db) return; // Si estamos en SSR, ignoramos la llamada en servidor
+  if (!db) return;
 
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([STORE_NAME], "readwrite");
@@ -65,7 +64,7 @@ export const saveValuationRecord = async (record: ValuationRecord): Promise<void
 
 export const getAllValuations = async (): Promise<ValuationRecord[]> => {
   const db = await initDB();
-  if (!db) return []; // Si estamos en SSR, devolvemos lista vacía en servidor
+  if (!db) return [];
 
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([STORE_NAME], "readonly");
