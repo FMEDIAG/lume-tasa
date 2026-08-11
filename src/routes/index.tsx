@@ -1,12 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useState, useEffect } from "react";
 import {
-  getAllValuations,
-  saveValuationRecord,
-  ValuationRecord,
-  StoredImage,
-} from "../lib/db";
-import {
   Building2,
   Sparkles,
   Calculator,
@@ -21,19 +15,35 @@ import {
   AlertCircle,
 } from "lucide-react";
 
+interface StoredImage {
+  id: string;
+  dataUrl: string;
+  base64?: string;
+  zoom?: number;
+  isMacro?: boolean;
+  timestamp?: string;
+}
+
+interface ValuationRecord {
+  id: string;
+  createdAt: string;
+  assetType: string;
+  location: string;
+  usefulArea: number;
+  exactPricePerM2: number;
+  totalValuation: number;
+  confidenceScore: number;
+  reasoningSteps: Array<{
+    step: number;
+    title: string;
+    description: string;
+  }>;
+  images: StoredImage[];
+}
+
 export const Route = createFileRoute("/")({
   component: LumeValuationApp,
 });
-
-// Componente de alerta local para evitar errores de importación en SSR
-function LumeAlert({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs font-semibold text-red-400 backdrop-blur-md">
-      <AlertCircle className="h-4 w-4 shrink-0 text-red-400" />
-      <div>{children}</div>
-    </div>
-  );
-}
 
 function LumeValuationApp() {
   const [isMounted, setIsMounted] = useState(false);
@@ -53,7 +63,6 @@ function LumeValuationApp() {
   // History State
   const [history, setHistory] = useState<ValuationRecord[]>([]);
 
-  // Garantizar hidratación segura en cliente
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -66,10 +75,11 @@ function LumeValuationApp() {
 
   const loadHistory = async () => {
     try {
+      const { getAllValuations } = await import("../lib/db");
       const records = await getAllValuations();
       setHistory(records.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
     } catch {
-      // Manejo silencioso en caso de error de lectura DB
+      setHistory([]);
     }
   };
 
@@ -150,6 +160,7 @@ function LumeValuationApp() {
         images,
       };
 
+      const { saveValuationRecord } = await import("../lib/db");
       await saveValuationRecord(newRecord);
       setValuationResult(newRecord);
     } catch {
@@ -165,44 +176,41 @@ function LumeValuationApp() {
     }
   };
 
-  // Renderizado inicial en servidor (SSR)
   if (!isMounted) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+        <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground">
-      {/* Halo de fondo con inline style para evitar errores de compilación CSS */}
+    <div className="relative min-h-screen bg-slate-950 text-slate-100">
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-[400px] blur-3xl opacity-20"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[400px] opacity-20"
         style={{
           background: "radial-gradient(ellipse at top, #d97706, transparent 70%)",
         }}
       />
 
       <div className="relative mx-auto max-w-4xl px-4 py-8 sm:px-8 space-y-6">
-        {/* Header */}
-        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-primary/20 pb-5">
+        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-amber-500/20 pb-5">
           <div>
-            <h1 className="text-2xl font-black tracking-tight sm:text-3xl text-gradient-gold">
-              LUME <span className="text-primary font-normal">AI</span>
+            <h1 className="text-2xl font-black tracking-tight sm:text-3xl text-amber-400">
+              LUME <span className="text-amber-200 font-normal">AI</span>
             </h1>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
               Sistema Inteligente de Valuación Inmobiliaria
             </p>
           </div>
 
-          <div className="glass-crystal flex items-center gap-1.5 rounded-full p-1">
+          <div className="flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-slate-900/60 p-1 backdrop-blur-md">
             <button
               onClick={() => setActiveTab("workspace")}
               className={`rounded-full px-4 py-2 text-xs font-semibold transition ${
                 activeTab === "workspace"
-                  ? "border border-primary/60 bg-primary/20 text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "border border-amber-500/60 bg-amber-500/20 text-amber-400"
+                  : "text-slate-400 hover:text-slate-100"
               }`}
             >
               Nueva Tasación
@@ -211,8 +219,8 @@ function LumeValuationApp() {
               onClick={() => setActiveTab("history")}
               className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition ${
                 activeTab === "history"
-                  ? "border border-primary/60 bg-primary/20 text-primary"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "border border-amber-500/60 bg-amber-500/20 text-amber-400"
+                  : "text-slate-400 hover:text-slate-100"
               }`}
             >
               <History className="h-3.5 w-3.5" />
@@ -221,52 +229,50 @@ function LumeValuationApp() {
           </div>
         </header>
 
-        {/* Tab 1: Workspace */}
         {activeTab === "workspace" && (
           <div className="space-y-6">
-            <form onSubmit={handleCalculate} className="glass-crystal space-y-6 rounded-2xl p-6 shadow-xl">
-              <h2 className="text-base font-semibold flex items-center gap-2 text-gradient-gold">
-                <Building2 className="h-5 w-5 text-primary" />
+            <form onSubmit={handleCalculate} className="space-y-6 rounded-2xl border border-amber-500/20 bg-slate-900/40 p-6 shadow-xl backdrop-blur-md">
+              <h2 className="text-base font-semibold flex items-center gap-2 text-amber-400">
+                <Building2 className="h-5 w-5 text-amber-500" />
                 1. Datos Principales
               </h2>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-muted-foreground">Tipo de Activo</label>
+                  <label className="text-xs font-semibold text-slate-400">Tipo de Activo</label>
                   <input
                     type="text"
                     value={assetType}
                     onChange={(e) => setAssetType(e.target.value)}
-                    className="w-full rounded-xl border border-primary/30 bg-background/50 px-3 py-2 text-sm font-medium text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                    className="w-full rounded-xl border border-amber-500/30 bg-slate-950/50 px-3 py-2 text-sm font-medium text-slate-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-muted-foreground">Ubicación</label>
+                  <label className="text-xs font-semibold text-slate-400">Ubicación</label>
                   <input
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full rounded-xl border border-primary/30 bg-background/50 px-3 py-2 text-sm font-medium text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                    className="w-full rounded-xl border border-amber-500/30 bg-slate-950/50 px-3 py-2 text-sm font-medium text-slate-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-muted-foreground">Superficie Útil (m²)</label>
+                  <label className="text-xs font-semibold text-slate-400">Superficie Útil (m²)</label>
                   <input
                     type="number"
                     step="0.01"
                     value={usefulArea}
                     onChange={(e) => setUsefulArea(e.target.value === "" ? "" : parseFloat(e.target.value))}
-                    className="w-full rounded-xl border border-primary/30 bg-background/50 px-3 py-2 text-sm font-medium text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                    className="w-full rounded-xl border border-amber-500/30 bg-slate-950/50 px-3 py-2 text-sm font-medium text-slate-100 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none"
                   />
                 </div>
               </div>
 
-              {/* Captura de Evidencias */}
-              <div className="pt-4 border-t border-primary/20 space-y-3">
-                <h2 className="text-base font-semibold flex items-center gap-2 text-gradient-gold">
-                  <Camera className="h-5 w-5 text-primary" />
+              <div className="pt-4 border-t border-amber-500/20 space-y-3">
+                <h2 className="text-base font-semibold flex items-center gap-2 text-amber-400">
+                  <Camera className="h-5 w-5 text-amber-500" />
                   2. Evidencias e Inspección Fotográfica
                 </h2>
 
@@ -274,15 +280,15 @@ function LumeValuationApp() {
                   <button
                     type="button"
                     onClick={() => handleAddSampleImage(false)}
-                    className="glass-crystal flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold text-primary transition hover:bg-primary/15"
+                    className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-slate-900/80 px-3.5 py-2 text-xs font-semibold text-amber-400 transition hover:bg-amber-500/10"
                   >
-                    <Plus className="h-4 w-4 text-primary" />
+                    <Plus className="h-4 w-4 text-amber-400" />
                     Añadir Foto Estándar
                   </button>
                   <button
                     type="button"
                     onClick={() => handleAddSampleImage(true)}
-                    className="glass-crystal flex items-center gap-1.5 rounded-full border border-primary/50 bg-primary/20 px-3.5 py-2 text-xs font-semibold text-primary transition hover:bg-primary/30"
+                    className="flex items-center gap-1.5 rounded-full border border-amber-500/50 bg-amber-500/20 px-3.5 py-2 text-xs font-semibold text-amber-300 transition hover:bg-amber-500/30"
                   >
                     <Sparkles className="h-4 w-4" />
                     Añadir Captura Macro
@@ -292,8 +298,8 @@ function LumeValuationApp() {
                 {images.length > 0 && (
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 pt-2">
                     {images.map((img) => (
-                      <div key={img.id} className="relative glass-crystal rounded-xl p-3 text-center space-y-1.5">
-                        <span className="text-xs font-bold block truncate text-primary">
+                      <div key={img.id} className="relative rounded-xl border border-amber-500/20 bg-slate-900/60 p-3 text-center space-y-1.5 backdrop-blur-md">
+                        <span className="text-xs font-bold block truncate text-amber-400">
                           {img.isMacro ? "🔍 Macro Zoom" : "📷 Estándar"}
                         </span>
                         <button
@@ -309,7 +315,12 @@ function LumeValuationApp() {
                 )}
               </div>
 
-              {error && <LumeAlert>{error}</LumeAlert>}
+              {error && (
+                <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-500/10 p-3.5 text-xs font-semibold text-red-400 backdrop-blur-md">
+                  <AlertCircle className="h-4 w-4 shrink-0 text-red-400" />
+                  <div>{error}</div>
+                </div>
+              )}
 
               <button
                 type="submit"
@@ -330,25 +341,24 @@ function LumeValuationApp() {
               </button>
             </form>
 
-            {/* Resultado de la Tasación */}
             {valuationResult && (
-              <div className="glass-crystal space-y-6 rounded-2xl p-6 shadow-2xl border border-primary/40">
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-primary/20 pb-4">
+              <div className="space-y-6 rounded-2xl border border-amber-500/40 bg-slate-900/60 p-6 shadow-2xl backdrop-blur-md">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-amber-500/20 pb-4">
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-widest text-primary">
+                    <span className="text-xs font-bold uppercase tracking-widest text-amber-400">
                       Registro Guardado en LumeDB
                     </span>
-                    <h3 className="text-xl font-bold text-foreground">ID: {valuationResult.id}</h3>
+                    <h3 className="text-xl font-bold text-slate-100">ID: {valuationResult.id}</h3>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <span className="flex items-center gap-1 rounded-full border border-primary/30 bg-primary/15 px-3 py-1 text-xs font-bold text-primary">
+                    <span className="flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/15 px-3 py-1 text-xs font-bold text-amber-400">
                       <CheckCircle2 className="h-3.5 w-3.5" />
                       Confianza: {(valuationResult.confidenceScore * 100).toFixed(1)}%
                     </span>
                     <button
                       onClick={handlePrint}
-                      className="glass-crystal flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold text-primary transition hover:bg-primary/20"
+                      className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-slate-900/80 px-3.5 py-2 text-xs font-semibold text-amber-400 transition hover:bg-amber-500/20"
                     >
                       <Printer className="h-4 w-4" />
                       <span>Imprimir Informe</span>
@@ -356,28 +366,28 @@ function LumeValuationApp() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-primary/30 bg-primary/10 p-5 backdrop-blur-md">
-                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-5 backdrop-blur-md">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
                     VALOR ESTIMADO DE MERCADO
                   </span>
-                  <div className="text-3xl font-black sm:text-4xl my-1 text-gradient-gold">
+                  <div className="text-3xl font-black sm:text-4xl my-1 text-amber-400">
                     {formatCurrency(valuationResult.totalValuation)}
                   </div>
-                  <p className="text-xs font-semibold text-primary">
+                  <p className="text-xs font-semibold text-amber-300">
                     Métrico Exacto: {valuationResult.exactPricePerM2.toLocaleString("es-ES")} €/m² ({valuationResult.usefulArea} m²)
                   </p>
                 </div>
 
                 <div className="space-y-3">
-                  <h4 className="text-sm font-semibold flex items-center gap-2 text-gradient-gold">
-                    <FileText className="h-4 w-4 text-primary" />
+                  <h4 className="text-sm font-semibold flex items-center gap-2 text-amber-400">
+                    <FileText className="h-4 w-4 text-amber-500" />
                     Razonamiento Multimodal (Chain of Thought)
                   </h4>
                   <div className="space-y-2">
                     {valuationResult.reasoningSteps.map((step) => (
-                      <div key={step.step} className="rounded-xl border border-primary/20 bg-background/40 p-3 text-xs space-y-1">
-                        <div className="font-semibold text-primary">PASO {step.step}: {step.title}</div>
-                        <p className="text-muted-foreground leading-relaxed">{step.description}</p>
+                      <div key={step.step} className="rounded-xl border border-amber-500/20 bg-slate-950/40 p-3 text-xs space-y-1">
+                        <div className="font-semibold text-amber-400">PASO {step.step}: {step.title}</div>
+                        <p className="text-slate-400 leading-relaxed">{step.description}</p>
                       </div>
                     ))}
                   </div>
@@ -387,31 +397,30 @@ function LumeValuationApp() {
           </div>
         )}
 
-        {/* Tab 2: History */}
         {activeTab === "history" && (
           <div className="space-y-4">
-            <h2 className="text-lg font-bold text-gradient-gold">Historial de Tasaciones Guardadas</h2>
+            <h2 className="text-lg font-bold text-amber-400">Historial de Tasaciones Guardadas</h2>
             {history.length === 0 ? (
-              <div className="glass-crystal rounded-2xl p-8 text-center text-xs text-muted-foreground">
+              <div className="rounded-2xl border border-amber-500/20 bg-slate-900/40 p-8 text-center text-xs text-slate-400 backdrop-blur-md">
                 No hay registros en la base de datos todavía. Realiza una tasación primero.
               </div>
             ) : (
               history.map((item) => (
-                <div key={item.id} className="glass-crystal rounded-2xl p-5 space-y-3 shadow-md">
-                  <div className="flex items-center justify-between border-b border-primary/20 pb-2">
-                    <span className="font-bold text-primary text-xs">{item.id}</span>
-                    <span className="text-xs text-muted-foreground">
+                <div key={item.id} className="rounded-2xl border border-amber-500/20 bg-slate-900/40 p-5 space-y-3 shadow-md backdrop-blur-md">
+                  <div className="flex items-center justify-between border-b border-amber-500/20 pb-2">
+                    <span className="font-bold text-amber-400 text-xs">{item.id}</span>
+                    <span className="text-xs text-slate-400">
                       {new Date(item.createdAt).toLocaleDateString("es-ES")}
                     </span>
                   </div>
                   <div className="flex justify-between items-end">
                     <div>
-                      <p className="text-xs font-bold text-foreground">{item.assetType}</p>
-                      <p className="text-xs text-muted-foreground">{item.location} ({item.usefulArea} m²)</p>
+                      <p className="text-xs font-bold text-slate-100">{item.assetType}</p>
+                      <p className="text-xs text-slate-400">{item.location} ({item.usefulArea} m²)</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-base font-black text-gradient-gold">{formatCurrency(item.totalValuation)}</p>
-                      <p className="text-xs text-primary font-semibold">{item.exactPricePerM2} €/m²</p>
+                      <p className="text-base font-black text-amber-400">{formatCurrency(item.totalValuation)}</p>
+                      <p className="text-xs text-amber-300 font-semibold">{item.exactPricePerM2} €/m²</p>
                     </div>
                   </div>
                 </div>
