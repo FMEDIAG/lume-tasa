@@ -46,7 +46,6 @@ export const Route = createFileRoute("/")({
 });
 
 function LumeValuationApp() {
-  const [isMounted, setIsMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<"workspace" | "history">("workspace");
 
   // Form State
@@ -64,14 +63,10 @@ function LumeValuationApp() {
   const [history, setHistory] = useState<ValuationRecord[]>([]);
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (isMounted && activeTab === "history") {
+    if (activeTab === "history") {
       void loadHistory();
     }
-  }, [activeTab, isMounted]);
+  }, [activeTab]);
 
   const loadHistory = async () => {
     try {
@@ -139,7 +134,7 @@ function LumeValuationApp() {
           {
             step: 1,
             title: "Inspección Visual y Análisis Macro de Detalles",
-            description: `Se procesaron ${images.length} capturas en alta resolución (${images.filter(i => i.isMacro).length} en modo Macro).`,
+            description: `Se procesaron ${images.length} capturas en alta resolución (${images.filter((i) => i.isMacro).length} en modo Macro).`,
           },
           {
             step: 2,
@@ -175,14 +170,6 @@ function LumeValuationApp() {
       window.print();
     }
   };
-
-  if (!isMounted) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-        <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
-      </div>
-    );
-  }
 
   return (
     <div className="relative min-h-screen bg-slate-950 text-slate-100">
