@@ -1,21 +1,13 @@
 import { createRootRoute, Outlet, ScrollRestoration } from "@tanstack/react-router";
-import { Meta, Scripts } from "@tanstack/react-start";
-import { Toaster } from "sonner";
+import { Meta, Scripts } from "@tanstack/start";
 import type { ReactNode } from "react";
 
 export const Route = createRootRoute({
   head: () => ({
     meta: [
-      {
-        charSet: "utf-8",
-      },
-      {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1",
-      },
-      {
-        title: "Lume",
-      },
+      { charSet: "utf-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { title: "Lume AI Valuation" },
     ],
   }),
   component: RootComponent,
@@ -31,13 +23,12 @@ function RootComponent() {
 
 function RootDocument({ children }: { children: ReactNode }) {
   return (
-    <html lang="es" className="dark">
+    <html lang="es">
       <head>
         <Meta />
       </head>
-      <body className="min-h-screen font-sans antialiased">
+      <body className="min-h-screen bg-slate-950 text-slate-100 antialiased">
         {children}
-        <Toaster theme="dark" position="top-center" closeButton />
         <ScrollRestoration />
         <Scripts />
       </body>
