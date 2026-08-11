@@ -13,6 +13,8 @@ import { translations, type Lang } from "@/lib/i18n";
 import { formatNumber } from "@/lib/formatPrice";
 import { extractPricePerSqm } from "@/lib/pricePerSqm";
 
+const ITEMS_PER_PAGE = 3;
+
 function sourceUrl(source: string, query: string): string {
   const q = encodeURIComponent(query);
   const s = source.toLowerCase();
@@ -54,7 +56,12 @@ function HistoryPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const fileRef = useRef<HTMLInputElement | null>(null);
-  const ITEMS_PER_PAGE = 3;
+
+  const reloadHistory = async () => {
+    const h = await getHistory();
+    setItems(h);
+    setLoading(false);
+  };
 
   const handleExport = async () => {
     try {
@@ -68,19 +75,25 @@ function HistoryPage() {
   const handleImport = async (file: File) => {
     try {
       const n = await importHistory(await file.text());
-      setItems(await getHistory());
+      await reloadHistory();
       toast.success(t.importOk(n));
     } catch (e) {
       toast.error(e instanceof Error ? e.message : t.importError);
     }
   };
 
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteValuation(id);
+      await reloadHistory();
+    } catch {
+      toast.error(lang === "es" ? "Error al eliminar" : "Error deleting item");
+    }
+  };
+
   useEffect(() => {
     const read = () => {
-      void getHistory().then((h) => {
-        setItems(h);
-        setLoading(false);
-      });
+      void reloadHistory();
       setLang(((localStorage.getItem("lume:lang") as Lang) || "es"));
     };
     read();
@@ -95,7 +108,7 @@ function HistoryPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [activeTab, items.length]);
+  }, [activeTab]);
 
   const t = translations[lang];
   const locale = lang === "es" ? "es-ES" : "en-US";
@@ -104,6 +117,14 @@ function HistoryPage() {
   );
   const filtered = activeTab === "all" ? items : items.filter((v) => (v.category ?? "other") === activeTab);
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+
+  // Ajuste automático de página si se eliminan elementos y la página actual queda fuera de rango
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
   const paginatedItems = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
   const allLabel = lang === "es" ? "Todas" : "All";
 
@@ -205,12 +226,12 @@ function HistoryPage() {
                             tabIndex={0}
                             onClick={(e) => {
                               e.stopPropagation();
-                              deleteValuation(v.id);
+                              void handleDelete(v.id);
                             }}
                             onKeyDown={(e) => {
                               if (e.key === "Enter" || e.key === " ") {
                                 e.stopPropagation();
-                                deleteValuation(v.id);
+                                void handleDelete(v.id);
                               }
                             }}
                             className="-m-1 shrink-0 p-1 text-muted-foreground transition hover:text-destructive"
