@@ -1,16 +1,10 @@
 export interface StoredImage {
   id: string;
   dataUrl: string;
-  base64: string;
-  zoom: number;
-  isMacro: boolean;
-  timestamp: string;
-}
-
-export interface ReasoningStep {
-  step: number;
-  title: string;
-  description: string;
+  base64?: string;
+  zoom?: number;
+  isMacro?: boolean;
+  timestamp?: string;
 }
 
 export interface ValuationRecord {
@@ -22,65 +16,63 @@ export interface ValuationRecord {
   exactPricePerM2: number;
   totalValuation: number;
   confidenceScore: number;
-  reasoningSteps: ReasoningStep[];
+  reasoningSteps: Array<{
+    step: number;
+    title: string;
+    description: string;
+  }>;
   images: StoredImage[];
 }
 
-const DB_NAME = "LumeValuationDB";
-const DB_VERSION = 1;
-const STORE_VALUATIONS = "valuations";
+const DB_NAME = "LumeValuationsDB";
+const STORE_NAME = "valuations";
 
-export function openDB(): Promise<IDBDatabase | null> {
-  return new Promise((resolve) => {
+const initDB = (): Promise<IDBDatabase | null> => {
+  return new Promise((resolve, reject) => {
+    // Protección contra ejecución en Servidor (SSR)
     if (typeof window === "undefined" || !("indexedDB" in window)) {
-      console.warn("IndexedDB no está disponible en este entorno.");
       resolve(null);
       return;
     }
 
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    const request = indexedDB.open(DB_NAME, 1);
+
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
 
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
-      if (!db.objectStoreNames.contains(STORE_VALUATIONS)) {
-        db.createObjectStore(STORE_VALUATIONS, { keyPath: "id" });
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: "id" });
       }
     };
-
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => {
-      console.error("Error al abrir IndexedDB:", request.error);
-      resolve(null);
-    };
   });
-}
+};
 
-export async function saveValuationRecord(
-  record: ValuationRecord
-): Promise<void> {
-  const db = await openDB();
-  if (!db) return;
+export const saveValuationRecord = async (record: ValuationRecord): Promise<void> => {
+  const db = await initDB();
+  if (!db) return; // Si estamos en SSR, ignoramos la llamada en servidor
 
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_VALUATIONS, "readwrite");
-    const store = tx.objectStore(STORE_VALUATIONS);
-    const req = store.put(record);
+    const transaction = db.transaction([STORE_NAME], "readwrite");
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.put(record);
 
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject(req.error);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
   });
-}
+};
 
-export async function getAllValuations(): Promise<ValuationRecord[]> {
-  const db = await openDB();
-  if (!db) return [];
+export const getAllValuations = async (): Promise<ValuationRecord[]> => {
+  const db = await initDB();
+  if (!db) return []; // Si estamos en SSR, devolvemos lista vacía en servidor
 
-  return new Promise((resolve) => {
-    const tx = db.transaction(STORE_VALUATIONS, "readonly");
-    const store = tx.objectStore(STORE_VALUATIONS);
-    const req = store.getAll();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_NAME], "readonly");
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.getAll();
 
-    req.onsuccess = () => resolve(req.result || []);
-    req.onerror = () => resolve([]);
+    request.onsuccess = () => resolve(request.result || []);
+    request.onerror = () => reject(request.error);
   });
-}
+};
