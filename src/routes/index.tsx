@@ -26,13 +26,13 @@ export const Route = createFileRoute("/")({
 });
 
 function LumeValuationApp() {
+  const [isMounted, setIsMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<"workspace" | "history">("workspace");
 
   // Form State
   const [assetType, setAssetType] = useState("Ático Residencial");
   const [location, setLocation] = useState("Barrio de Salamanca, Madrid");
   const [usefulArea, setUsefulArea] = useState<number | "">(150);
-  const [notes, setNotes] = useState("");
   const [images, setImages] = useState<StoredImage[]>([]);
 
   // Execution State
@@ -43,11 +43,16 @@ function LumeValuationApp() {
   // History State
   const [history, setHistory] = useState<ValuationRecord[]>([]);
 
+  // Garantizar montaje en cliente (protección total contra SSR crash)
   useEffect(() => {
-    if (activeTab === "history") {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && activeTab === "history") {
       void loadHistory();
     }
-  }, [activeTab]);
+  }, [activeTab, isMounted]);
 
   const loadHistory = async () => {
     const records = await getAllValuations();
@@ -141,12 +146,25 @@ function LumeValuationApp() {
   };
 
   const handlePrint = () => {
-    window.print();
+    if (typeof window !== "undefined") {
+      window.print();
+    }
   };
 
+  // Si se está ejecutando en el servidor (SSR), devolvemos un contenedor limpio para evitar el Error 500
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
-    <div className="relative min-h-screen">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[400px] bg-[radial-gradient(ellipse_at_top,oklch(0.72_0.2_45/30%),transparent_70%)] blur-3xl" />
+    <div className="relative min-h-screen bg-background text-foreground">
+      {/* Background Glow */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[400px] bg-[radial-gradient(ellipse_at_top,rgba(217,119,6,0.15),transparent_70%)] blur-3xl" />
+      
       <div className="relative mx-auto max-w-4xl px-4 py-8 sm:px-8 space-y-6">
         {/* Header */}
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-primary/20 pb-5">
