@@ -5,7 +5,6 @@ import {
   StoredImage,
   ValuationRecord,
 } from "../../lib/db";
-import { buildLumeValuationPrompt } from "../../lib/aiPromptFormatter";
 import { analyzeValuationWithGemini } from "../../lib/geminiService";
 import {
   Building2,
