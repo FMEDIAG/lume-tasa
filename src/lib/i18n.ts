@@ -25,6 +25,7 @@ export const translations = {
       jewelry: "Joyería",
       electronics: "Electrónica",
       books: "Libros y cómics",
+      music instrument: "Instrumento de música"
       toys: "Juguetes y figuras",
       vinyl: "Vinilos y música",
       fashion: "Moda y complementos",
@@ -106,6 +107,7 @@ export const translations = {
       jewelry: "Jewelry",
       electronics: "Electronics",
       books: "Books & comics",
+      music instrument: "Music instrument"
       toys: "Toys & figures",
       vinyl: "Vinyl & music",
       fashion: "Fashion & accessories",
