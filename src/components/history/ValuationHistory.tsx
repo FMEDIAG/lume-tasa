@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { getAllValuations, ValuationRecord } from "../../lib/db";
-import { generateValuationPDF } from "../../lib/pdfExporter";
 import {
   History,
   FileDown,
