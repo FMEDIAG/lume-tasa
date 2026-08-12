@@ -6,7 +6,6 @@ import {
   ValuationRecord,
 } from "../../lib/db";
 import { buildLumeValuationPrompt } from "../../lib/aiPromptFormatter";
-import { generateValuationPDF } from "../../lib/pdfExporter";
 import { analyzeValuationWithGemini } from "../../lib/geminiService";
 import {
   Building2,
@@ -265,15 +264,6 @@ export function ValuationWorkspace() {
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 Confianza: {(valuationResult.confidenceScore * 100).toFixed(1)}%
               </span>
-
-              <button
-                type="button"
-                onClick={() => generateValuationPDF(valuationResult)}
-                className="flex items-center gap-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 px-3.5 py-2 text-xs font-bold text-white shadow-md transition active:scale-95"
-              >
-                <FileDown className="h-4 w-4" />
-                <span>Exportar Informe PDF</span>
-              </button>
             </div>
           </div>
 
