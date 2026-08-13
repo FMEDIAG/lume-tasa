@@ -1,4 +1,4 @@
-# Logs
+# Logs generados por gestores de paquetes y el propio proyecto
 logs
 *.log
 npm-debug.log*
@@ -7,22 +7,22 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencias y directorios de compilación/salida
 node_modules
 dist
 dist-ssr
 .output
-.vinxi
-.tanstack/**
 .nitro
-*.local
+.vinxi
+.tanstack/** # Caché y archivos de configuración de TanStack
 
-# Wrangler / Cloudflare
+# Entorno de desarrollo y despliegue Cloudflare/Wrangler
 .wrangler/
 .dev.vars
 
-# Editor directories and files
+# Archivos y directorios específicos del editor y del IDE
 .vscode/*
-!.vscode/extensions.json
+!.vscode/extensions.json # Mantener la configuración de extensiones de VS Code
 .idea
 .DS_Store
 *.suo
@@ -30,4 +30,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Variables de entorno y secretos
 .env
+# Añadir aquí otros archivos de configuración local o secretos si son necesarios
+
+# Caché de frameworks y herramientas (ej. Vite, Nuxt, etc.)
+# .nuxt/cache # Ejemplo si se usa Nuxt y no está cubierto por .output
+# .vite/ # Ejemplo si se usa Vite y genera caché
