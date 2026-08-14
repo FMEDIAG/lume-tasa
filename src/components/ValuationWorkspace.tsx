@@ -60,22 +60,7 @@ export function ValuationWorkspace() {
 
       let generatedRecord: ValuationRecord;
 
-      if (apiKey) {
-        generatedRecord = await analyzeValuationWithGemini(
-          {
-            assetType,
-            location,
-            usefulArea: areaNum,
-            additionalNotes: notes,
-          },
-          images
-        );
-      } else {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        const mockExactPricePerM2 = 8305.67;
-        const mockTotalValuation = mockExactPricePerM2 * areaNum;
-
-        generatedRecord = {
+          await saveValuationRecord(generatedRecord);
           id: `LUME-${Date.now().toString().slice(-6)}`,
           createdAt: new Date().toISOString(),
           assetType,
