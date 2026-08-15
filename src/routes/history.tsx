@@ -13,7 +13,7 @@ import { translations, type Lang } from "@/lib/i18n";
 import { formatNumber } from "@/lib/formatPrice";
 import { extractPricePerSqm } from "@/lib/pricePerSqm";
 
-const ITEMS_PER_PAGE = 3;
+const ITEMS_PER_PAGE = 5;
 
 function sourceUrl(source: string, query: string): string {
   const q = encodeURIComponent(query);
