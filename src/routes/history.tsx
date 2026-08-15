@@ -353,5 +353,5 @@ function HistoryPage() {
       {t.next}
     </button>
   </nav>
-)}
+}
 
