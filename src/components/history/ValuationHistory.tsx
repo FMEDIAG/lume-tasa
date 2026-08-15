@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { getAllValuations, ValuationRecord } from "../../lib/db";
 import {
   History,
-  FileDown,
   Building2,
   MapPin,
   Calendar,
@@ -12,14 +11,21 @@ import {
   Search,
 } from "lucide-react";
 
+const ITEMS_PER_PAGE = 5;
+
 export function ValuationHistory() {
   const [history, setHistory] = useState<ValuationRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     loadHistory();
   }, []);
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm]);
 
   const loadHistory = async () => {
     try {
@@ -52,6 +58,12 @@ export function ValuationHistory() {
       item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.assetType.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.location.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const totalPages = Math.max(1, Math.ceil(filteredHistory.length / ITEMS_PER_PAGE));
+  const paginatedHistory = filteredHistory.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE
   );
 
   return (
@@ -98,86 +110,114 @@ export function ValuationHistory() {
       )}
 
       {!loading && filteredHistory.length > 0 && (
-        <div className="space-y-4">
-          {filteredHistory.map((record) => {
-            const macroCount = record.images ? record.images.filter((img) => img.isMacro).length : 0;
-            const dateStr = new Date(record.createdAt).toLocaleDateString(
-              "es-ES",
-              {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              }
-            );
+        <>
+          <div className="space-y-4">
+            {paginatedHistory.map((record) => {
+              const macroCount = record.images ? record.images.filter((img) => img.isMacro).length : 0;
+              const dateStr = new Date(record.createdAt).toLocaleDateString(
+                "es-ES",
+                {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                }
+              );
 
-            return (
-              <div
-                key={record.id}
-                className="rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:shadow-md space-y-4"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/50 pb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-lg bg-sky-500/10 px-2.5 py-1 text-xs font-black text-sky-500 border border-sky-500/20">
-                      {record.id}
-                    </span>
-                    <span className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
-                      <Calendar className="h-3.5 w-3.5" />
-                      {dateStr}
-                    </span>
-                  </div>
-                 </div>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-extrabold text-muted-foreground uppercase">
-                      Activo & Ubicación
-                    </span>
-                    <p className="text-xs font-bold text-foreground flex items-center gap-1">
-                      <Building2 className="h-3.5 w-3.5 text-sky-500" />
-                      {record.assetType}
-                    </p>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      <MapPin className="h-3.5 w-3.5" />
-                      {record.location}
-                    </p>
+              return (
+                <div
+                  key={record.id}
+                  className="rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:shadow-md space-y-4"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/50 pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-lg bg-sky-500/10 px-2.5 py-1 text-xs font-black text-sky-500 border border-sky-500/20">
+                        {record.id}
+                      </span>
+                      <span className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
+                        <Calendar className="h-3.5 w-3.5" />
+                        {dateStr}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-extrabold text-muted-foreground uppercase">
-                      Evidencias
-                    </span>
-                    <p className="text-xs font-semibold text-foreground flex items-center gap-1">
-                      <Layers className="h-3.5 w-3.5 text-sky-500" />
-                      {record.images?.length || 0} Capturas
-                    </p>
-                    {macroCount > 0 && (
-                      <p className="text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1">
-                        <Sparkles className="h-3.5 w-3.5" />
-                        {macroCount} en modo Macro
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-extrabold text-muted-foreground uppercase">
+                        Activo & Ubicación
+                      </span>
+                      <p className="text-xs font-bold text-foreground flex items-center gap-1">
+                        <Building2 className="h-3.5 w-3.5 text-sky-500" />
+                        {record.assetType}
                       </p>
-                    )}
-                  </div>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <MapPin className="h-3.5 w-3.5" />
+                        {record.location}
+                      </p>
+                    </div>
 
-                  <div className="space-y-1 sm:text-right">
-                    <span className="text-[10px] font-extrabold text-muted-foreground uppercase">
-                      Tasación Final (Sin Redondeo)
-                    </span>
-                    <p className="text-lg font-black text-foreground">
-                      {formatExactCurrency(record.totalValuation)}
-                    </p>
-                    <p className="text-[11px] font-bold text-sky-600 dark:text-sky-400">
-                      {record.exactPricePerM2.toLocaleString("es-ES", {
-                        minimumFractionDigits: 2,
-                      })}{" "}
-                      €/m² ({record.usefulArea.toFixed(2)} m²)
-                    </p>
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-extrabold text-muted-foreground uppercase">
+                        Evidencias
+                      </span>
+                      <p className="text-xs font-semibold text-foreground flex items-center gap-1">
+                        <Layers className="h-3.5 w-3.5 text-sky-500" />
+                        {record.images?.length || 0} Capturas
+                      </p>
+                      {macroCount > 0 && (
+                        <p className="text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1">
+                          <Sparkles className="h-3.5 w-3.5" />
+                          {macroCount} en modo Macro
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1 sm:text-right">
+                      <span className="text-[10px] font-extrabold text-muted-foreground uppercase">
+                        Tasación Final (Sin Redondeo)
+                      </span>
+                      <p className="text-lg font-black text-foreground">
+                        {formatExactCurrency(record.totalValuation)}
+                      </p>
+                      <p className="text-[11px] font-bold text-sky-600 dark:text-sky-400">
+                        {record.exactPricePerM2.toLocaleString("es-ES", {
+                          minimumFractionDigits: 2,
+                        })}{" "}
+                        €/m² ({record.usefulArea.toFixed(2)} m²)
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-border pt-4">
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className="rounded-xl border border-border bg-background px-4 py-2 text-xs font-semibold text-foreground transition hover:bg-muted disabled:opacity-40"
+              >
+                Anterior
+              </button>
+              <span className="text-xs font-medium text-muted-foreground">
+                Página {page} de {totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="rounded-xl border border-sky-500/30 bg-sky-500/10 px-4 py-2 text-xs font-semibold text-sky-500 transition hover:bg-sky-500/20 disabled:opacity-40"
+              >
+                Siguiente
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
 }
+
+                  
