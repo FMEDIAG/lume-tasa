@@ -120,7 +120,7 @@ export async function exportHistory(): Promise<void> {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `lume-historial-${new Date().toISOString().slice(0, 10)}.json`;
+  a.download = `lume-historial-${new Date().toISOString().slice(0, 5)}.json`;
   document.body.appendChild(a);
   a.click();
   a.remove();
