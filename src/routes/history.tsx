@@ -13,7 +13,7 @@ import { translations, type Lang } from "@/lib/i18n";
 import { formatNumber } from "@/lib/formatPrice";
 import { extractPricePerSqm } from "@/lib/pricePerSqm";
 
-const ITEMS_PER_PAGE = 5; // rebuild force v2
+const ITEMS_PAGE = 5; // rebuild force v2
 
 function sourceUrl(source: string, query: string): string {
   const q = encodeURIComponent(query);
@@ -116,7 +116,7 @@ function HistoryPage() {
     new Set(items.map((v) => (v.category && v.category in t.categories ? v.category : "other")))
   );
   const filtered = activeTab === "all" ? items : items.filter((v) => (v.category ?? "other") === activeTab);
-  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PAGE));
 
   // Ajuste automático de página si se eliminan elementos y la página actual queda fuera de rango
   useEffect(() => {
@@ -125,7 +125,7 @@ function HistoryPage() {
     }
   }, [page, totalPages]);
 
-  const paginatedItems = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+  const paginatedItems = filtered.slice((page - 1) * ITEMS_PAGE, page * ITEMS_PAGE);
   const allLabel = lang === "es" ? "Todas" : "All";
 
   return (
