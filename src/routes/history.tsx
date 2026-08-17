@@ -13,7 +13,8 @@ import { translations, type Lang } from "@/lib/i18n";
 import { formatNumber } from "@/lib/formatPrice";
 import { extractPricePerSqm } from "@/lib/pricePerSqm";
 
-const ITEMS_PAGE = 5; // rebuild force v2
+const ITEMS_PAGE = 5;
+const MAX_IMPORT_BYTES = 5 * 1024 * 1024; // 5 MB
 
 function sourceUrl(source: string, query: string): string {
   const q = encodeURIComponent(query);
@@ -74,6 +75,20 @@ function HistoryPage() {
 
   const handleImport = async (file: File) => {
     try {
+      // Paso 1: validar tamaño antes de leer el archivo
+      if (file.size > MAX_IMPORT_BYTES) {
+        throw new Error(
+          lang === "es"
+            ? "El archivo es demasiado grande (máx. 5 MB)"
+            : "File too large (max 5 MB)"
+        );
+      }
+      // Paso 1: validar que realmente sea un JSON
+      if (file.type && file.type !== "application/json" && !file.name.endsWith(".json")) {
+        throw new Error(
+          lang === "es" ? "El archivo debe ser un JSON" : "File must be a JSON"
+        );
+      }
       const n = await importHistory(await file.text());
       await reloadHistory();
       toast.success(t.importOk(n));
@@ -328,7 +343,7 @@ function HistoryPage() {
               })}
             </ul>
 
-                        {totalPages > 1 && (
+            {totalPages > 1 && (
               <nav
                 aria-label={lang === "es" ? "Paginación del historial" : "History pagination"}
                 className="mt-6 flex items-center justify-between gap-3"
@@ -360,5 +375,3 @@ function HistoryPage() {
     </div>
   );
 }
-
-
