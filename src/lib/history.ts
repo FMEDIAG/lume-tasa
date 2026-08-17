@@ -1,17 +1,25 @@
-export interface Valuation {
-  id: string;
-  createdAt: number;
-  title: string;
-  identification: string;
-  priceEurMin: number;
-  priceEurMax: number;
-  priceUsdMin: number;
-  priceUsdMax: number;
-  confidence: "low" | "medium" | "high";
-  notes: string;
-  sources: string[];
-  thumbnail: string;
-  category?: string;
+import { z } from "zod";
+
+const valuationSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().max(500),
+  thumbnail: z.string().url().max(2048).optional().or(z.literal("")),
+  createdAt: z.union([z.string(), z.number()]),
+  priceEurMin: z.number().finite(),
+  priceEurMax: z.number().finite(),
+  priceUsdMin: z.number().finite(),
+  priceUsdMax: z.number().finite(),
+  identification: z.string().max(10_000),
+  confidence: z.string(),
+  category: z.string().optional(),
+  notes: z.string().max(50_000).optional(),
+  sources: z.array(z.string().max(200)).max(50).optional(),
+});
+
+export async function importHistory(json: string): Promise<number> {
+  const parsed = valuationSchema.array().safeParse(JSON.parse(json));
+  if (!parsed.success) throw new Error("Archivo de historial inválido");
+  // ... guardar parsed.data
 }
 
 const LEGACY_KEY = "lume:history:v1";
