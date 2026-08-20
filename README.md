@@ -1,6 +1,6 @@
 🏷️ Lume
 
-Tasación inteligente de cualquier objeto, desde un sello hasta un inmueble
+Tasación inteligente de cualquier objeto, desde un sello hasta un inmueble.
 Lume es una aplicación que permite obtener tasaciones instantáneas y estimadas de prácticamente cualquier tipo de objeto:
 coleccionables, arte, vehículos, joyas, maquinaria, inmuebles y mucho más.
 
