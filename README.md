@@ -30,3 +30,5 @@ Se consultan bases públicas y comparables globales.
 Se genera una tasación estimada, con rango de valor y nivel de confianza.
 
 Se muestra un informe claro y exportable.
+
+© 2026 - FMEDIAG - Lume v1.0
