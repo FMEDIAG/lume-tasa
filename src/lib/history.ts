@@ -1,9 +1,25 @@
 import { z } from "zod";
 
+export interface Valuation {
+  id: string;
+  title: string;
+  thumbnail?: string;
+  createdAt: number;
+  priceEurMin: number;
+  priceEurMax: number;
+  priceUsdMin: number;
+  priceUsdMax: number;
+  identification: string;
+  confidence: string;
+  category?: string;
+  notes?: string;
+  sources?: string[];
+}
+
 const valuationSchema = z.object({
   id: z.string().min(1),
   title: z.string().max(500),
-  thumbnail: z.string().url().max(2048).optional().or(z.literal("")),
+  thumbnail: z.string().max(2048).optional(),
   createdAt: z.union([z.string(), z.number()]),
   priceEurMin: z.number().finite(),
   priceEurMax: z.number().finite(),
@@ -15,12 +31,6 @@ const valuationSchema = z.object({
   notes: z.string().max(50_000).optional(),
   sources: z.array(z.string().max(200)).max(50).optional(),
 });
-
-export async function importHistory(json: string): Promise<number> {
-  const parsed = valuationSchema.array().safeParse(JSON.parse(json));
-  if (!parsed.success) throw new Error("Archivo de historial inválido");
-  // ... guardar parsed.data
-}
 
 const LEGACY_KEY = "lume:history:v1";
 const DB_NAME = "LumeDB";
@@ -46,7 +56,10 @@ function openDB(): Promise<IDBDatabase> {
   return dbPromise;
 }
 
-function tx<T>(mode: IDBTransactionMode, run: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
+function tx<T>(
+  mode: IDBTransactionMode,
+  run: (store: IDBObjectStore) => IDBRequest<T>
+): Promise<T> {
   return openDB().then(
     (db) =>
       new Promise<T>((resolve, reject) => {
@@ -59,7 +72,9 @@ function tx<T>(mode: IDBTransactionMode, run: (store: IDBObjectStore) => IDBRequ
 }
 
 function notify() {
-  window.dispatchEvent(new Event("lume:history"));
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("lume:history"));
+  }
 }
 
 let migrated = false;
@@ -82,12 +97,19 @@ async function migrateLegacy() {
   }
 }
 
+function toTimestamp(v: Valuation): number {
+  const c = v.createdAt;
+  if (typeof c === "number") return c;
+  const d = new Date(c);
+  return isNaN(d.getTime()) ? 0 : d.getTime();
+}
+
 export async function getHistory(): Promise<Valuation[]> {
   if (typeof window === "undefined" || !("indexedDB" in window)) return [];
   try {
     await migrateLegacy();
     const items = await tx<Valuation[]>("readonly", (s) => s.getAll() as IDBRequest<Valuation[]>);
-    return items.sort((a, b) => b.createdAt - a.createdAt);
+    return items.sort((a, b) => toTimestamp(b) - toTimestamp(a));
   } catch (e) {
     console.error("Error al leer historial", e);
     return [];
@@ -128,7 +150,7 @@ export async function exportHistory(): Promise<void> {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `lume-historial-${new Date().toISOString().slice(0, 5)}.json`;
+  a.download = `lume-historial-${new Date().toISOString().slice(0, 10)}.json`;
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -142,9 +164,11 @@ function isValuation(v: unknown): v is Valuation {
     typeof o === "object" &&
     typeof o.id === "string" &&
     typeof o.title === "string" &&
-    typeof o.createdAt === "number" &&
+    (typeof o.createdAt === "number" || typeof o.createdAt === "string") &&
     typeof o.priceEurMin === "number" &&
-    typeof o.priceEurMax === "number"
+    typeof o.priceEurMax === "number" &&
+    typeof o.priceUsdMin === "number" &&
+    typeof o.priceUsdMax === "number"
   );
 }
 
@@ -156,14 +180,21 @@ export async function importHistory(json: string): Promise<number> {
     ? parsed
     : ((parsed as { items?: unknown[] })?.items ?? null);
   if (!Array.isArray(raw)) throw new Error("Formato de archivo no válido");
-  const items = raw.filter(isValuation);
-  if (items.length === 0) throw new Error("El archivo no contiene tasaciones válidas");
+
+  const validated = raw.filter((item) => {
+    const ok = isValuation(item);
+    if (!ok) console.warn("Elemento ignorado al importar: no es una tasación válida", item);
+    return ok;
+  });
+
+  if (validated.length === 0) throw new Error("El archivo no contiene tasaciones válidas");
   await migrateLegacy();
-  for (const item of items) {
-    await tx("readwrite", (s) => s.put(item));
+  for (const item of validated) {
+    const parsedItem = valuationSchema.parse(item);
+    await tx("readwrite", (s) => s.put(parsedItem));
   }
   notify();
-  return items.length;
+  return validated.length;
 }
 
 export async function clearHistory(): Promise<void> {
