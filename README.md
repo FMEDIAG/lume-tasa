@@ -26,7 +26,7 @@ Despliegue automático mediante GitHub Pages.
 
 El usuario sube una imagen, saca fotos y/o describe el objeto.
 
-La IA identifica el tipo de objeto y sus atributos relevantes.
+La IA identifica el tipo de objeto y sus atributos relevantes
 
 Se consultan bases públicas y comparables globales.
 
