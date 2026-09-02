@@ -49,8 +49,11 @@ function fileToDataUrl(file: File): Promise<string> {
 async function compressImage(file: File, max = 1280, quality = 0.82): Promise<string> {
   const url = await fileToDataUrl(file);
   const img = new Image();
-  img.src = url;
-  await new Promise((r) => (img.onload = r));
+  await new Promise<void>((resolve, reject) => {
+    img.onload = () => resolve();
+    img.onerror = () => reject(new Error("No se pudo leer la imagen"));
+    img.src = url;
+  });
   const scale = Math.min(1, max / Math.max(img.width, img.height));
   const w = Math.round(img.width * scale);
   const h = Math.round(img.height * scale);
@@ -61,6 +64,7 @@ async function compressImage(file: File, max = 1280, quality = 0.82): Promise<st
   ctx.drawImage(img, 0, 0, w, h);
   return canvas.toDataURL("image/jpeg", quality);
 }
+
 
 function useLangState(): [Lang, (l: Lang) => void] {
   const [lang, setLang] = useState<Lang>("es");
@@ -143,11 +147,20 @@ function Index() {
     if (!files) return;
     const newPhotos: Photo[] = [];
     for (const f of Array.from(files)) {
-      const dataUrl = await compressImage(f);
-      newPhotos.push({ id: crypto.randomUUID(), dataUrl });
+      try {
+        const dataUrl = await compressImage(f);
+        newPhotos.push({ id: crypto.randomUUID(), dataUrl });
+      } catch {
+        toast.error(
+          lang === "es"
+            ? `No se pudo procesar la foto ${f.name}`
+            : `Could not process photo ${f.name}`,
+        );
+      }
     }
-    setPhotos((p) => [...p, ...newPhotos].slice(0, 3));
+    if (newPhotos.length) setPhotos((p) => [...p, ...newPhotos].slice(0, 3));
   }
+
 
   async function onValuate() {
     setLoading(true);
