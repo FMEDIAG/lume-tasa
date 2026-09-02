@@ -147,11 +147,20 @@ function Index() {
     if (!files) return;
     const newPhotos: Photo[] = [];
     for (const f of Array.from(files)) {
-      const dataUrl = await compressImage(f);
-      newPhotos.push({ id: crypto.randomUUID(), dataUrl });
+      try {
+        const dataUrl = await compressImage(f);
+        newPhotos.push({ id: crypto.randomUUID(), dataUrl });
+      } catch {
+        toast.error(
+          lang === "es"
+            ? `No se pudo procesar la foto ${f.name}`
+            : `Could not process photo ${f.name}`,
+        );
+      }
     }
-    setPhotos((p) => [...p, ...newPhotos].slice(0, 3));
+    if (newPhotos.length) setPhotos((p) => [...p, ...newPhotos].slice(0, 3));
   }
+
 
   async function onValuate() {
     setLoading(true);
