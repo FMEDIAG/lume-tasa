@@ -45,7 +45,7 @@ const lumeAlertVariants = cva(
 );
 
 interface LumeAlertProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, "title">,
     VariantProps<typeof lumeAlertVariants> {
   icon?: React.ReactNode;
   showIcon?: boolean;

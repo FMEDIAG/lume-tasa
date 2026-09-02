@@ -13,7 +13,7 @@ const CATEGORY_KEYS = [
   "jewelry",
   "electronics",
   "books",
-  "music instrument"
+  "music instrument",
   "toys",
   "vinyl",
   "fashion",
