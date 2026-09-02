@@ -315,7 +315,7 @@ function HistoryPage() {
                             </p>
                           </div>
                         )}
-                        {v.sources?.length > 0 && (
+                        {v.sources && v.sources.length > 0 && (
                           <div>
                             <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
                               {t.sources}

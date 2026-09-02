@@ -281,8 +281,8 @@ async function onSave() {
               <CameraCapture
                 t={{ ...t, lang }}
                 onClose={() => setMacroOpen(false)}
-                onCapture={(dataUrl) => {
-                  setPhotos((p) => [...p, { id: crypto.randomUUID(), dataUrl }].slice(0, 3));
+                onCapture={(res) => {
+                  setPhotos((p) => [...p, { id: crypto.randomUUID(), dataUrl: res.dataUrl }].slice(0, 3));
                   setMacroOpen(false);
                 }}
               />
@@ -579,7 +579,7 @@ function ResultCard({
           </div>
         )}
 
-        {result.sources?.length > 0 && (
+        {result.sources && result.sources.length > 0 && (
           <div className="mt-4">
             <p className="text-xs uppercase tracking-wider text-muted-foreground">
               {t.sources}
