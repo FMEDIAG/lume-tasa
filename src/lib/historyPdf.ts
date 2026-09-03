@@ -293,5 +293,34 @@ export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
     );
   }
 
-  doc.save(`lume-informe-tasaciones-${new Date().toISOString().slice(0, 10)}.pdf`);
+  doc.setProperties({ title: t.title, subject: t.subtitle, creator: "Lume", author: "FMEDIAG" });
+
+  // Datos incrustados tras %%EOF: los lectores de PDF los ignoran,
+  // pero permiten reimportar el historial completo desde el propio PDF.
+  const payload = JSON.stringify({ app: "Lume", kind: "valuation-history", version: 1, items });
+  const encoded = btoa(String.fromCharCode(...new TextEncoder().encode(payload)));
+  const pdfBytes = new Uint8Array(doc.output("arraybuffer") as ArrayBuffer);
+  const tail = new TextEncoder().encode(`\n${DATA_MARKER}${encoded}${DATA_END}\n`);
+  const blob = new Blob([pdfBytes, tail], { type: "application/pdf" });
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `lume-informe-tasaciones-${new Date().toISOString().slice(0, 10)}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/** Extrae el historial incrustado en un PDF Premium generado por Lume. */
+export function extractHistoryJsonFromPdf(raw: string): string {
+  const start = raw.indexOf(DATA_MARKER);
+  const end = raw.indexOf(DATA_END, start);
+  if (start === -1 || end === -1) {
+    throw new Error("PDF_NO_LUME_DATA");
+  }
+  const encoded = raw.slice(start + DATA_MARKER.length, end).replace(/\s/g, "");
+  const bytes = Uint8Array.from(atob(encoded), (c) => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
 }
