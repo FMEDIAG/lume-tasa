@@ -66,7 +66,7 @@ function HistoryPage() {
 
   const handleExport = async () => {
     try {
-      await exportHistory();
+      await exportHistoryPdf(lang);
       toast.success(t.exportOk);
     } catch {
       toast.error(t.exportError);
