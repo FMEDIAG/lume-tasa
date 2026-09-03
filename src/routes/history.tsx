@@ -4,11 +4,11 @@ import { ArrowLeft, Download, ExternalLink, Trash2, Upload } from "lucide-react"
 import { toast } from "sonner";
 import {
   deleteValuation,
-  exportHistory,
   getHistory,
   importHistory,
   type Valuation,
 } from "@/lib/history";
+import { exportHistoryPdf } from "@/lib/historyPdf";
 import { translations, type Lang } from "@/lib/i18n";
 import { formatNumber } from "@/lib/formatPrice";
 import { extractPricePerSqm } from "@/lib/pricePerSqm";
@@ -66,7 +66,7 @@ function HistoryPage() {
 
   const handleExport = async () => {
     try {
-      await exportHistory();
+      await exportHistoryPdf(lang);
       toast.success(t.exportOk);
     } catch {
       toast.error(t.exportError);
