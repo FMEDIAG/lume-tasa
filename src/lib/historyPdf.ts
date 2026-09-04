@@ -111,17 +111,20 @@ export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
   doc.text(t.footer, W / 2, H - 40, { align: "center" });
 
   // ---------- Cuerpo ----------
-  doc.addPage();
-  page = 1;
-  decorate();
   let y = M + 8;
+  const newBodyPage = () => {
+    doc.addPage();
+    page += 1;
+    decorate();
+    y = M + 8;
+  };
+  if (items.length === 0) {
+    newBodyPage();
+  }
 
   const ensure = (need: number) => {
     if (y + need > H - M - 6) {
-      doc.addPage();
-      page += 1;
-      decorate();
-      y = M + 8;
+      newBodyPage();
     }
   };
 
@@ -158,14 +161,15 @@ export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
     y += 4;
   };
 
-  heading(t.body);
-
   if (items.length === 0) {
+    heading(t.body);
     paragraph(t.empty);
   }
 
+  // Cada tasación ocupa su propia página
   items.forEach((v, i) => {
-    ensure(96);
+    newBodyPage();
+    heading(`${t.body} ${i + 1}/${items.length}`);
     // tarjeta
     const top = y - 14;
     doc.setFillColor(250, 248, 244);
