@@ -124,10 +124,7 @@ export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
 
   const ensure = (need: number) => {
     if (y + need > H - M - 6) {
-      doc.addPage();
-      page += 1;
-      decorate();
-      y = M + 8;
+      newBodyPage();
     }
   };
 
