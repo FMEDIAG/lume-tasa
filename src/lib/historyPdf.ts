@@ -7,6 +7,9 @@ const GOLD: [number, number, number] = [212, 168, 83];
 const CREAM: [number, number, number] = [245, 240, 230];
 const MUTED: [number, number, number] = [120, 128, 150];
 
+const DATA_MARKER = "%%LUME-DATA:";
+const DATA_END = ":LUME-END%%";
+
 const L = {
   es: {
     title: "Informe de Tasaciones",
