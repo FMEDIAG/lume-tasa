@@ -164,8 +164,12 @@ export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
     paragraph(t.empty);
   }
 
+  // Cada tasación ocupa su propia página
   items.forEach((v, i) => {
-    ensure(96);
+    doc.addPage();
+    page += 1;
+    decorate();
+    y = M + 8;
     // tarjeta
     const top = y - 14;
     doc.setFillColor(250, 248, 244);
