@@ -111,10 +111,16 @@ export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
   doc.text(t.footer, W / 2, H - 40, { align: "center" });
 
   // ---------- Cuerpo ----------
-  doc.addPage();
-  page = 1;
-  decorate();
   let y = M + 8;
+  const newBodyPage = () => {
+    doc.addPage();
+    page += 1;
+    decorate();
+    y = M + 8;
+  };
+  if (items.length === 0) {
+    newBodyPage();
+  }
 
   const ensure = (need: number) => {
     if (y + need > H - M - 6) {
