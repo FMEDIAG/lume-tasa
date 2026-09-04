@@ -20,8 +20,6 @@ Historial de tasaciones: permite consultar y gestionar tasaciones anteriores.
 
 Interfaz rápida y moderna gracias a Vite + React + Tailwind.
 
-Despliegue automático mediante GitHub Pages.
-
 🧠 ¿Cómo funciona?
 
 El usuario sube una imagen, saca fotos y/o describe el objeto.
