@@ -187,7 +187,7 @@ function HistoryPage() {
           <input
             ref={fileRef}
             type="file"
-            accept="application/json,.json"
+            accept="application/pdf,.pdf,application/json,.json"
             className="hidden"
             onChange={(e) => {
               const f = e.target.files?.[0];
