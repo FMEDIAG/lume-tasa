@@ -195,6 +195,28 @@ export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
     doc.text(new Date(v.createdAt).toLocaleString(locale), M + 12, y);
     y += 14;
 
+    // Fotografía original de la tasación (se conserva intacta en el PDF)
+    if (v.thumbnail && v.thumbnail.startsWith("data:image")) {
+      try {
+        const props = doc.getImageProperties(v.thumbnail);
+        const maxW = W - M * 2 - 24;
+        const maxH = 230;
+        const scale = Math.min(maxW / props.width, maxH / props.height, 1);
+        const iw = props.width * scale;
+        const ih = props.height * scale;
+        ensure(ih + 16);
+        const ix = (W - iw) / 2;
+        doc.setDrawColor(...GOLD);
+        doc.setLineWidth(0.8);
+        doc.addImage(v.thumbnail, ix, y, iw, ih, undefined, "FAST");
+        doc.rect(ix, y, iw, ih);
+        y += ih + 16;
+      } catch (e) {
+        console.warn("No se pudo incrustar la imagen en el PDF", e);
+      }
+    }
+
+
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10.5);
     doc.setTextColor(...GOLD);
