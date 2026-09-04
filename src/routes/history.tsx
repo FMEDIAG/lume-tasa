@@ -8,13 +8,13 @@ import {
   importHistory,
   type Valuation,
 } from "@/lib/history";
-import { exportHistoryPdf } from "@/lib/historyPdf";
+import { exportHistoryPdf, extractHistoryJsonFromPdf } from "@/lib/historyPdf";
 import { translations, type Lang } from "@/lib/i18n";
 import { formatNumber } from "@/lib/formatPrice";
 import { extractPricePerSqm } from "@/lib/pricePerSqm";
 
 const ITEMS_PAGE = 5;
-const MAX_IMPORT_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_IMPORT_BYTES = 20 * 1024 * 1024; // 20 MB
 
 function sourceUrl(source: string, query: string): string {
   const q = encodeURIComponent(query);
