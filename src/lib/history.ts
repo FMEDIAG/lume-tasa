@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export interface Valuation {
-  id: string
+  id: string:
   title: string;
   thumbnail?: string;
   createdAt: number;
