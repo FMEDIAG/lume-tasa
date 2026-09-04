@@ -161,18 +161,15 @@ export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
     y += 4;
   };
 
-  heading(t.body);
-
   if (items.length === 0) {
+    heading(t.body);
     paragraph(t.empty);
   }
 
   // Cada tasación ocupa su propia página
   items.forEach((v, i) => {
-    doc.addPage();
-    page += 1;
-    decorate();
-    y = M + 8;
+    newBodyPage();
+    heading(`${t.body} ${i + 1}/${items.length}`);
     // tarjeta
     const top = y - 14;
     doc.setFillColor(250, 248, 244);
