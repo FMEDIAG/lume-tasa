@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Download, ExternalLink, Trash2, Upload } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, ExternalLink, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   deleteValuation,
@@ -162,7 +162,7 @@ function HistoryPage() {
             className="glass-crystal flex h-10 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-primary transition hover:bg-primary/15"
             aria-label={t.exportHistory}
           >
-            <Download className="h-4 w-4" />
+            <ArrowUp className="h-4 w-4" />
             <span className="hidden sm:inline">{t.exportHistory}</span>
           </button>
           <button
@@ -171,7 +171,7 @@ function HistoryPage() {
             className="glass-crystal flex h-10 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-primary transition hover:bg-primary/15"
             aria-label={t.importHistory}
           >
-            <Upload className="h-4 w-4" />
+            <ArrowDown className="h-4 w-4" />
             <span className="hidden sm:inline">{t.importHistory}</span>
           </button>
           <input
