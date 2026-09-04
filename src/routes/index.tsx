@@ -540,7 +540,7 @@ function ResultCard({
               {result.title}
             </h2>
             <p className={`mt-1 text-xs font-medium uppercase ${confColor}`}>
-              {t.confidence}: {result.confidence}
+              {t.confidence}: {t.confidenceLevels[result.confidence as keyof typeof t.confidenceLevels] ?? result.confidence}
             </p>
           </div>
         </div>
