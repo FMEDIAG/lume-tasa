@@ -20,6 +20,9 @@ const CATEGORY_KEYS = [
   "sports",
   "vehicles",
   "boats",
+  "gemstones",
+  "minerals",
+  "furniture",
   "realestate",
   "other",
 ] as const;
