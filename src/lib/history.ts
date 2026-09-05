@@ -19,7 +19,7 @@ export interface Valuation {
 const valuationSchema = z.object({
   id: z.string().min(1),
   title: z.string().max(500),
-  thumbnail: z.string().max(8_000_000).optional(),
+  thumbnail: z.string().max(30_000_000).optional(),
   createdAt: z.union([z.string(), z.number()]),
   priceEurMin: z.number().finite(),
   priceEurMax: z.number().finite(),

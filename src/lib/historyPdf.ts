@@ -200,15 +200,16 @@ export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
       try {
         const props = doc.getImageProperties(v.thumbnail);
         const maxW = W - M * 2 - 24;
-        const maxH = 230;
-        const scale = Math.min(maxW / props.width, maxH / props.height, 1);
+        const maxH = 300;
+        const scale = Math.min(maxW / props.width, maxH / props.height);
         const iw = props.width * scale;
         const ih = props.height * scale;
         ensure(ih + 16);
         const ix = (W - iw) / 2;
         doc.setDrawColor(...GOLD);
         doc.setLineWidth(0.8);
-        doc.addImage(v.thumbnail, ix, y, iw, ih, undefined, "FAST");
+        // "NONE": la imagen se incrusta sin recomprimir, a su resolución original
+        doc.addImage(v.thumbnail, ix, y, iw, ih, undefined, "NONE");
         doc.rect(ix, y, iw, ih);
         y += ih + 16;
       } catch (e) {
