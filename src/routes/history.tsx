@@ -14,7 +14,7 @@ import { formatNumber } from "@/lib/formatPrice";
 import { extractPricePerSqm } from "@/lib/pricePerSqm";
 
 const ITEMS_PAGE = 5;
-const MAX_IMPORT_BYTES = 20 * 1024 * 1024; // 20 MB
+const MAX_IMPORT_BYTES = 80 * 1024 * 1024; // 80 MB (fotos sin comprimir)
 
 function sourceUrl(source: string, query: string): string {
   const q = encodeURIComponent(query);

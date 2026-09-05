@@ -35,6 +35,8 @@ export const Route = createFileRoute("/")({
 interface Photo {
   id: string;
   dataUrl: string;
+  /** Foto original sin comprimir (alta resolución) para el PDF premium. */
+  originalDataUrl?: string;
 }
 
 function fileToDataUrl(file: File): Promise<string> {
@@ -148,8 +150,9 @@ function Index() {
     const newPhotos: Photo[] = [];
     for (const f of Array.from(files)) {
       try {
+        const originalDataUrl = await fileToDataUrl(f);
         const dataUrl = await compressImage(f);
-        newPhotos.push({ id: crypto.randomUUID(), dataUrl });
+        newPhotos.push({ id: crypto.randomUUID(), dataUrl, originalDataUrl });
       } catch {
         toast.error(
           lang === "es"
@@ -177,7 +180,7 @@ function Index() {
           lang,
         },
       });
-      setResult({ ...r, thumbnail: photos[0].dataUrl });
+      setResult({ ...r, thumbnail: photos[0].originalDataUrl || photos[0].dataUrl });
     } catch (e) {
       console.error(e);
       setError(t.error);
@@ -295,7 +298,7 @@ async function onSave() {
                 t={{ ...t, lang }}
                 onClose={() => setMacroOpen(false)}
                 onCapture={(res) => {
-                  setPhotos((p) => [...p, { id: crypto.randomUUID(), dataUrl: res.dataUrl }].slice(0, 3));
+                  setPhotos((p) => [...p, { id: crypto.randomUUID(), dataUrl: res.dataUrl, originalDataUrl: res.dataUrl }].slice(0, 3));
                   setMacroOpen(false);
                 }}
               />
