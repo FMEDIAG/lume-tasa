@@ -30,7 +30,7 @@ const L = {
     byCategory: "Por categoría",
     page: "Página",
     empty: "No hay tasaciones en el historial.",
-    footer: "©2026 FMEDIAG - App Lume v1.0",
+    footer: "©2026 FMEDIAG - App Lume",
   },
   en: {
     title: "Appraisal Report",
@@ -59,6 +59,18 @@ export type PdfLang = keyof typeof L;
 const M = 46; // margen
 const W = 595.28; // A4 pt
 const H = 841.89;
+
+/** Convierte bytes a string binario en bloques, evitando el límite de argumentos
+ * de String.fromCharCode(...bytes) que revienta con payloads grandes (fotos en base64). */
+function bytesToBinaryString(bytes: Uint8Array): string {
+  const CHUNK = 0x8000; // 32768
+  let result = "";
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    const chunk = bytes.subarray(i, i + CHUNK);
+    result += String.fromCharCode(...chunk);
+  }
+  return result;
+}
 
 function ts(v: Valuation): number {
   return typeof v.createdAt === "number" ? v.createdAt : new Date(v.createdAt).getTime();
@@ -325,7 +337,7 @@ export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
   // Datos incrustados tras %%EOF: los lectores de PDF los ignoran,
   // pero permiten reimportar el historial completo desde el propio PDF.
   const payload = JSON.stringify({ app: "Lume", kind: "valuation-history", version: 1, items });
-  const encoded = btoa(String.fromCharCode(...new TextEncoder().encode(payload)));
+  const encoded = btoa(bytesToBinaryString(new TextEncoder().encode(payload)));
   const pdfBytes = new Uint8Array(doc.output("arraybuffer") as ArrayBuffer);
   const tail = new TextEncoder().encode(`\n${DATA_MARKER}${encoded}${DATA_END}\n`);
   const blob = new Blob([pdfBytes, tail], { type: "application/pdf" });
