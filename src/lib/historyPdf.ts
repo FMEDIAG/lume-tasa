@@ -278,7 +278,7 @@ export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
     }
     if (v.confidence) {
       label(t.confidence);
-      paragraph(String(v.confidence));
+      paragraph(confidenceLabel(v, lang));
     }
     if (v.notes) {
       label(t.notes);
