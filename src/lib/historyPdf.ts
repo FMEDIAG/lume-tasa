@@ -73,6 +73,15 @@ function ts(v: Valuation): number {
   return typeof v.createdAt === "number" ? v.createdAt : new Date(v.createdAt).getTime();
 }
 
+function confidenceLabel(v: Valuation, lang: PdfLang): string {
+  const raw = String(v.confidence ?? "").toLowerCase();
+  const t = L[lang].confidenceLevels;
+  if (raw.includes("high") || raw.includes("alta")) return t.high;
+  if (raw.includes("medium") || raw.includes("media")) return t.medium;
+  if (raw.includes("low") || raw.includes("baja")) return t.low;
+  return String(v.confidence ?? "");
+}
+
 export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
   const items = await getHistory();
   const t = L[lang];
