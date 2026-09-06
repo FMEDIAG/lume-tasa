@@ -1,6 +1,7 @@
 import { jsPDF } from "jspdf";
 import { getHistory, type Valuation } from "./history";
 import { formatNumber } from "./formatPrice";
+import { translations } from "./i18n";
 
 const NAVY: [number, number, number] = [26, 31, 58];
 const GOLD: [number, number, number] = [212, 168, 83];
@@ -80,6 +81,14 @@ function confidenceLabel(v: Valuation, lang: PdfLang): string {
   if (raw.includes("medium") || raw.includes("media")) return t.medium;
   if (raw.includes("low") || raw.includes("baja")) return t.low;
   return String(v.confidence ?? "");
+}
+
+function categoryLabel(v: Valuation, lang: PdfLang): string {
+  const key = v.category ?? "other";
+  return (
+    (translations[lang].categories as Record<string, string>)[key] ??
+    key
+  );
 }
 
 export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
@@ -268,7 +277,7 @@ export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8.5);
       doc.setTextColor(...MUTED);
-      doc.text(`${t.category}: ${v.category}`, M + 12, y);
+      doc.text(`${t.category}: ${categoryLabel(v, lang)}`, M + 12, y);
       y += 14;
     }
 
@@ -341,8 +350,9 @@ export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
   if (byCat.size > 0) {
     y += 10;
     label(t.byCategory);
+    const catMap = translations[lang].categories as Record<string, string>;
     for (const [k, n] of Array.from(byCat.entries()).sort((a, b) => b[1] - a[1])) {
-      row(k, String(n));
+      row(catMap[k] ?? k, String(n));
     }
   }
 
