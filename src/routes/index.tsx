@@ -35,8 +35,6 @@ export const Route = createFileRoute("/")({
 interface Photo {
   id: string;
   dataUrl: string;
-  /** Foto original sin comprimir (alta resolución) para el PDF premium. */
-  originalDataUrl?: string;
 }
 
 function fileToDataUrl(file: File): Promise<string> {
