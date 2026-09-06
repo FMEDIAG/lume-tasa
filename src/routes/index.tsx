@@ -150,9 +150,8 @@ function Index() {
     const newPhotos: Photo[] = [];
     for (const f of Array.from(files)) {
       try {
-        const originalDataUrl = await fileToDataUrl(f);
         const dataUrl = await compressImage(f);
-        newPhotos.push({ id: crypto.randomUUID(), dataUrl, originalDataUrl });
+        newPhotos.push({ id: crypto.randomUUID(), dataUrl });
       } catch {
         toast.error(
           lang === "es"
@@ -180,7 +179,7 @@ function Index() {
           lang,
         },
       });
-      setResult({ ...r, thumbnail: photos[0].originalDataUrl || photos[0].dataUrl });
+      setResult({ ...r, thumbnail: photos[0].dataUrl });
     } catch (e) {
       console.error(e);
       setError(t.error);
