@@ -19,6 +19,11 @@ const L = {
     summary: "Resumen",
     identification: "Identificación",
     confidence: "Confianza",
+    confidenceLevels: {
+      high: "Alta",
+      medium: "Media",
+      low: "Baja",
+    },
     notes: "Notas",
     sources: "Fuentes",
     category: "Categoría",
@@ -39,6 +44,11 @@ const L = {
     summary: "Summary",
     identification: "Identification",
     confidence: "Confidence",
+    confidenceLevels: {
+      high: "High",
+      medium: "Medium",
+      low: "Low",
+    },
     notes: "Notes",
     sources: "Sources",
     category: "Category",
@@ -61,6 +71,15 @@ const H = 841.89;
 
 function ts(v: Valuation): number {
   return typeof v.createdAt === "number" ? v.createdAt : new Date(v.createdAt).getTime();
+}
+
+function confidenceLabel(v: Valuation, lang: PdfLang): string {
+  const raw = String(v.confidence ?? "").toLowerCase();
+  const t = L[lang].confidenceLevels;
+  if (raw.includes("high") || raw.includes("alta")) return t.high;
+  if (raw.includes("medium") || raw.includes("media")) return t.medium;
+  if (raw.includes("low") || raw.includes("baja")) return t.low;
+  return String(v.confidence ?? "");
 }
 
 export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
@@ -259,7 +278,7 @@ export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
     }
     if (v.confidence) {
       label(t.confidence);
-      paragraph(String(v.confidence));
+      paragraph(confidenceLabel(v, lang));
     }
     if (v.notes) {
       label(t.notes);
