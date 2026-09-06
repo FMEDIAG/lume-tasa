@@ -19,6 +19,11 @@ const CATEGORY_KEYS = [
   "fashion",
   "sports",
   "memorabilia",
+  "bonsai",
+  "wine",
+  "furniture",
+  "militaria",
+  "luxury bags",
   "vehicles",
   "boats",
   "realestate",
@@ -104,8 +109,8 @@ export const detectCategory = createServerFn({ method: "POST" })
 
     const system =
       data.lang === "es"
-        ? `Eres un clasificador experto. Mira la foto y devuelve las 3 categorías más probables del objeto de esta lista EXACTA (usa la clave en inglés): art, cards, coins, stamps, watches, jewelry, electronics, books, music instrument, toys, vinyl, fashion, sports, memorabilia, vehicles, boats, realestate, other. Usa "memorabilia" para autógrafos, objetos de cine, música o historia sin relación con el deporte, y "sports" solo para objetos deportivos (camisetas, balones, medallas, cartas de deportistas). Devuelve SOLO JSON: {"category":"<mejor_clave>","confidence":<0-100>,"candidates":[{"category":"<clave>","confidence":<0-100>}, ...3 elementos ordenados por confianza descendente]}. Las confidencias deben ser porcentajes enteros y sumar aproximadamente 100.`
-        : `You are an expert classifier. Look at the photo and return the top 3 most likely categories from this EXACT list (use the English key): art, cards, coins, stamps, watches, jewelry, electronics, books, music instrument, toys, vinyl, fashion, sports, memorabilia, vehicles, boats, realestate, other. Use "memorabilia" for autographs, film, music or historical items unrelated to sports, and "sports" only for sports-specific items (jerseys, balls, medals, athlete trading cards). Return ONLY JSON: {"category":"<best_key>","confidence":<0-100>,"candidates":[{"category":"<key>","confidence":<0-100>}, ...3 items ordered by descending confidence]}. Confidences are integer percentages and should sum to roughly 100.`;
+        ? `Eres un clasificador experto. Mira la foto y devuelve las 3 categorías más probables del objeto de esta lista EXACTA (usa la clave en inglés): art, cards, coins, stamps, watches, jewelry, electronics, books, music instrument, toys, vinyl, fashion, sports, memorabilia, bonsai, wine, furniture, militaria, luxury bags, vehicles, boats, realestate, other. Usa "memorabilia" para autógrafos, objetos de cine, música o historia sin relación con el deporte, y "sports" solo para objetos deportivos (camisetas, balones, medallas, cartas de deportistas). Usa "bonsai" para árboles en maceta con estilo de bonsái. Usa "wine" para botellas de vino, cava, champán o licores. Usa "furniture" para muebles antiguos o de época. Usa "militaria" para objetos militares históricos (medallas, insignias, uniformes, cascos). Usa "luxury bags" para bolsos y complementos de marcas de lujo (no ropa general, que va en "fashion"). Devuelve SOLO JSON: {"category":"<mejor_clave>","confidence":<0-100>,"candidates":[{"category":"<clave>","confidence":<0-100>}, ...3 elementos ordenados por confianza descendente]}. Las confidencias deben ser porcentajes enteros y sumar aproximadamente 100.`
+        : `You are an expert classifier. Look at the photo and return the top 3 most likely categories from this EXACT list (use the English key): art, cards, coins, stamps, watches, jewelry, electronics, books, music instrument, toys, vinyl, fashion, sports, memorabilia, bonsai, wine, furniture, militaria, luxury bags, vehicles, boats, realestate, other. Use "memorabilia" for autographs, film, music or historical items unrelated to sports, and "sports" only for sports-specific items (jerseys, balls, medals, athlete trading cards). Use "bonsai" for potted trees styled as bonsai. Use "wine" for wine, champagne or spirits bottles. Use "furniture" for antique or period furniture. Use "militaria" for historic military items (medals, insignia, uniforms, helmets). Use "luxury bags" for luxury-brand bags and accessories (not general clothing, which goes in "fashion"). Return ONLY JSON: {"category":"<best_key>","confidence":<0-100>,"candidates":[{"category":"<key>","confidence":<0-100>}, ...3 items ordered by descending confidence]}. Confidences are integer percentages and should sum to roughly 100.`;
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
