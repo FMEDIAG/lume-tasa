@@ -270,7 +270,7 @@ BASQUE COUNTRY is a high-price market: never substitute national or province-wid
     };
     const raw = json.choices?.[0]?.message?.content ?? "{}";
 
-    let parsed: any;
+    let parsed: unknown;
     try {
       parsed = JSON.parse(raw);
     } catch {
@@ -283,9 +283,10 @@ BASQUE COUNTRY is a high-price market: never substitute national or province-wid
     // Con confidence "low" no inflamos el precio: mejor mostrar 0 que inventar
     // una tasación. NaN y valores negativos se convierten siempre a 0.
     if (typeof parsed === "object" && parsed !== null) {
-      const lowConfidence = parsed.confidence === "low";
+      const rec = parsed as Record<string, unknown>;
+      const lowConfidence = rec.confidence === "low";
 
-      const enforceMinimum = (val: any, defaultMin: number): number => {
+      const enforceMinimum = (val: unknown, defaultMin: number): number => {
         const num = toNumberLoose(val);
         // NaN, Infinity, negativo → 0 (sin inventar precio)
         if (!isFinite(num) || num < 0) return 0;
@@ -295,14 +296,16 @@ BASQUE COUNTRY is a high-price market: never substitute national or province-wid
         return num < defaultMin ? defaultMin : num;
       };
 
-      parsed.priceEurMin = enforceMinimum(parsed.priceEurMin, 0.02);
-      parsed.priceEurMax = enforceMinimum(parsed.priceEurMax, 0.1);
-      parsed.priceUsdMin = enforceMinimum(parsed.priceUsdMin, 0.02);
-      parsed.priceUsdMax = enforceMinimum(parsed.priceUsdMax, 0.1);
+      rec.priceEurMin = enforceMinimum(rec.priceEurMin, 0.02);
+      rec.priceEurMax = enforceMinimum(rec.priceEurMax, 0.1);
+      rec.priceUsdMin = enforceMinimum(rec.priceUsdMin, 0.02);
+      rec.priceUsdMax = enforceMinimum(rec.priceUsdMax, 0.1);
 
       // Garantiza que max >= min tras aplicar los suelos
-      if (parsed.priceEurMax < parsed.priceEurMin) parsed.priceEurMax = parsed.priceEurMin;
-      if (parsed.priceUsdMax < parsed.priceUsdMin) parsed.priceUsdMax = parsed.priceUsdMin;
+      if ((rec.priceEurMax as number) < (rec.priceEurMin as number))
+        rec.priceEurMax = rec.priceEurMin;
+      if ((rec.priceUsdMax as number) < (rec.priceUsdMin as number))
+        rec.priceUsdMax = rec.priceUsdMin;
     }
 
     // safeParse en vez de parse: el error lo controlamos nosotros,
