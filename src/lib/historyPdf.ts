@@ -30,7 +30,7 @@ const L = {
     byCategory: "Por categoría",
     page: "Página",
     empty: "No hay tasaciones en el historial.",
-    footer: "©2026 FMEDIAG - App Lume",
+    footer: "©2026 FMEDIAG - App Lume v1.0",
   },
   en: {
     title: "Appraisal Report",
