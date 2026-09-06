@@ -19,6 +19,11 @@ const L = {
     summary: "Resumen",
     identification: "Identificación",
     confidence: "Confianza",
+    confidenceLevels: {
+      high: "Alta",
+      medium: "Media",
+      low: "Baja",
+    },
     notes: "Notas",
     sources: "Fuentes",
     category: "Categoría",
@@ -39,6 +44,11 @@ const L = {
     summary: "Summary",
     identification: "Identification",
     confidence: "Confidence",
+    confidenceLevels: {
+      high: "High",
+      medium: "Medium",
+      low: "Low",
+    },
     notes: "Notes",
     sources: "Sources",
     category: "Category",
