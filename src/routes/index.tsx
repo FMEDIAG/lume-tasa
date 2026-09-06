@@ -46,7 +46,7 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
-async function compressImage(file: File, max = 1280, quality = 0.82): Promise<string> {
+async function compressImage(file: File, max = 1024, quality = 0.8): Promise<string> {
   const url = await fileToDataUrl(file);
   const img = new Image();
   await new Promise<void>((resolve, reject) => {
