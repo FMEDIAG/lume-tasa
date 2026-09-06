@@ -343,7 +343,13 @@ export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
   // Datos incrustados tras %%EOF: los lectores de PDF los ignoran,
   // pero permiten reimportar el historial completo desde el propio PDF.
   const payload = JSON.stringify({ app: "Lume", kind: "valuation-history", version: 1, items });
-  const encoded = btoa(String.fromCharCode(...new TextEncoder().encode(payload)));
+  // Base64 por bloques para no desbordar la pila con fotos grandes
+  const bytes = new TextEncoder().encode(payload);
+  let bin = "";
+  for (let off = 0; off < bytes.length; off += 8192) {
+    bin += String.fromCharCode(...bytes.subarray(off, off + 8192));
+  }
+  const encoded = btoa(bin);
   const pdfBytes = new Uint8Array(doc.output("arraybuffer") as ArrayBuffer);
   const tail = new TextEncoder().encode(`\n${DATA_MARKER}${encoded}${DATA_END}\n`);
   const blob = new Blob([pdfBytes, tail], { type: "application/pdf" });
