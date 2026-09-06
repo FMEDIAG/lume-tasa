@@ -141,6 +141,7 @@ export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
   };
 
   const label = (text: string) => {
+    ensure(30); // etiqueta + primera línea del párrafo juntas
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
     doc.setTextColor(...GOLD);
@@ -184,6 +185,26 @@ export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
       `${i + 1}. ${v.title}`,
       W - M * 2 - 24
     ) as string[];
+
+    // Calcula primero el tamaño de la foto para reservar el bloque completo
+    // (título + fecha + foto + precio + categoría) y evitar cortes en A4.
+    let img: { data: string; w: number; h: number } | null = null;
+    if (v.thumbnail && v.thumbnail.startsWith("data:image")) {
+      try {
+        const props = doc.getImageProperties(v.thumbnail);
+        const maxW = W - M * 2 - 24;
+        const maxH = 260;
+        const scale = Math.min(maxW / props.width, maxH / props.height, 1);
+        img = { data: v.thumbnail, w: props.width * scale, h: props.height * scale };
+      } catch (e) {
+        console.warn("No se pudo incrustar la imagen en el PDF", e);
+      }
+    }
+
+    const blockNeed =
+      titleLines.length * 15 + 14 + (img ? img.h + 16 : 0) + 18 + (v.category ? 16 : 0);
+    ensure(Math.min(blockNeed, H - M * 2 - 20));
+
     for (const line of titleLines) {
       ensure(16);
       doc.text(line, M + 12, y);
@@ -195,29 +216,22 @@ export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
     doc.text(new Date(v.createdAt).toLocaleString(locale), M + 12, y);
     y += 14;
 
-    // Fotografía original de la tasación (se conserva intacta en el PDF)
-    if (v.thumbnail && v.thumbnail.startsWith("data:image")) {
+    // Fotografía de la tasación (encuadrada con marco dorado, sin cortar)
+    if (img) {
       try {
-        const props = doc.getImageProperties(v.thumbnail);
-        const maxW = W - M * 2 - 24;
-        const maxH = 300;
-        const scale = Math.min(maxW / props.width, maxH / props.height);
-        const iw = props.width * scale;
-        const ih = props.height * scale;
-        ensure(ih + 16);
-        const ix = (W - iw) / 2;
+        ensure(img.h + 16);
+        const ix = (W - img.w) / 2;
         doc.setDrawColor(...GOLD);
         doc.setLineWidth(0.8);
-        // "NONE": la imagen se incrusta sin recomprimir, a su resolución original
-        doc.addImage(v.thumbnail, ix, y, iw, ih, undefined, "NONE");
-        doc.rect(ix, y, iw, ih);
-        y += ih + 16;
+        doc.addImage(img.data, ix, y, img.w, img.h, undefined, "NONE");
+        doc.rect(ix, y, img.w, img.h);
+        y += img.h + 16;
       } catch (e) {
         console.warn("No se pudo incrustar la imagen en el PDF", e);
       }
     }
 
-
+    ensure(18);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10.5);
     doc.setTextColor(...GOLD);
@@ -231,6 +245,7 @@ export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
     y += 16;
 
     if (v.category) {
+      ensure(16);
       doc.setFont("helvetica", "normal");
       doc.setFontSize(8.5);
       doc.setTextColor(...MUTED);
@@ -328,7 +343,13 @@ export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
   // Datos incrustados tras %%EOF: los lectores de PDF los ignoran,
   // pero permiten reimportar el historial completo desde el propio PDF.
   const payload = JSON.stringify({ app: "Lume", kind: "valuation-history", version: 1, items });
-  const encoded = btoa(String.fromCharCode(...new TextEncoder().encode(payload)));
+  // Base64 por bloques para no desbordar la pila con fotos grandes
+  const bytes = new TextEncoder().encode(payload);
+  let bin = "";
+  for (let off = 0; off < bytes.length; off += 8192) {
+    bin += String.fromCharCode(...bytes.subarray(off, off + 8192));
+  }
+  const encoded = btoa(bin);
   const pdfBytes = new Uint8Array(doc.output("arraybuffer") as ArrayBuffer);
   const tail = new TextEncoder().encode(`\n${DATA_MARKER}${encoded}${DATA_END}\n`);
   const blob = new Blob([pdfBytes, tail], { type: "application/pdf" });
