@@ -297,7 +297,7 @@ async function onSave() {
                 t={{ ...t, lang }}
                 onClose={() => setMacroOpen(false)}
                 onCapture={(res) => {
-                  setPhotos((p) => [...p, { id: crypto.randomUUID(), dataUrl: res.dataUrl, originalDataUrl: res.dataUrl }].slice(0, 3));
+                  setPhotos((p) => [...p, { id: crypto.randomUUID(), dataUrl: res.dataUrl }].slice(0, 3));
                   setMacroOpen(false);
                 }}
               />
