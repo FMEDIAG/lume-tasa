@@ -50,7 +50,7 @@ const L = {
     byCategory: "By category",
     page: "Page",
     empty: "No appraisals in history.",
-    footer: "©2026 FMEDIAG - App Lume",
+    footer: "©2026 FMEDIAG - App Lume v1.0",
   },
 };
 
