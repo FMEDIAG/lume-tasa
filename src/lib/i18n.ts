@@ -90,6 +90,27 @@ export const translations = {
     next: "Siguiente",
     page: "Página",
     of: "de",
+    intro: {
+      lead: "Desde un sello hasta un inmueble: obtén tasaciones instantáneas impulsadas por IA y bases públicas de todo el mundo, combinando datos históricos, comparables reales y análisis automatizado.",
+      featuresTitle: "Qué puedes hacer con Lume",
+      features: [
+        "Tasación universal: objetos pequeños (sellos, monedas, cartas, figuras) y bienes de alto valor (coches, relojes, inmuebles).",
+        "IA multimodal: analiza fotos, descripciones y contexto para generar una valoración estimada.",
+        "Datos globales: catálogos, registros y comparables reales de fuentes públicas internacionales.",
+        "Resultados en segundos, con rango de precio en EUR y USD y nivel de confianza.",
+        "Historial de tasaciones consultable, exportable e importable.",
+      ],
+      howTitle: "Cómo funciona",
+      howSteps: [
+        "Sube o haz fotos del objeto (hasta 3).",
+        "La IA identifica el objeto y sus atributos relevantes.",
+        "Se consultan bases públicas y comparables globales.",
+        "Recibes una tasación estimada con rango de valor y nivel de confianza.",
+        "Guarda, compara y exporta tu informe cuando quieras.",
+      ],
+      cta: "Empezar a tasar",
+      footer: "© 2026 FMEDIAG · Lume v1.0",
+    },
   },
   en: {
     appName: "Lume",
@@ -180,6 +201,27 @@ export const translations = {
     next: "Next",
     page: "Page",
     of: "of",
+    intro: {
+      lead: "From a stamp to a property: get instant appraisals powered by AI and public databases worldwide, combining historical data, real comparables and automated analysis.",
+      featuresTitle: "What you can do with Lume",
+      features: [
+        "Universal appraisal: small items (stamps, coins, cards, figures) and high-value assets (cars, watches, real estate).",
+        "Multimodal AI: analyzes photos, descriptions and context to generate an estimated valuation.",
+        "Global data: catalogs, records and real comparables from international public sources.",
+        "Results in seconds, with a EUR/USD price range and a confidence level.",
+        "Browsable appraisal history, exportable and importable.",
+      ],
+      howTitle: "How it works",
+      howSteps: [
+        "Upload or take photos of the item (up to 3).",
+        "The AI identifies the item and its relevant attributes.",
+        "Public databases and global comparables are queried.",
+        "You get an estimated appraisal with a value range and confidence level.",
+        "Save, compare and export your report whenever you like.",
+      ],
+      cta: "Start appraising",
+      footer: "© 2026 FMEDIAG · Lume v1.0",
+    },
   },
 } as const;
 
