@@ -34,11 +34,13 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  console.error(error);
+function ErrorComponent({ error, reset }: { error: unknown; reset: () => void }) {
+  const normalizedError = error instanceof Error ? error : new Error(String(error));
+  console.error(normalizedError);
   const router = useRouter();
   useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    reportLovableError(normalizedError, { boundary: "tanstack_root_error_component" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [error]);
 
   return (
@@ -71,7 +73,6 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     </div>
   );
 }
- 
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
@@ -94,14 +95,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Lume" },
       {
         property: "og:description",
-        content: "Lume tasa tus objetos por fotografía usando IA y bases de datos públicas como eBay y Wikipedia. Rangos en EUR y USD, ES/EN.",
+        content:
+          "Lume tasa tus objetos por fotografía usando IA y bases de datos públicas como eBay y Wikipedia. Rangos en EUR y USD, ES/EN.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Lume" },
-      { name: "twitter:description", content: "Lume tasa tus objetos por fotografía usando IA y bases de datos públicas como eBay y Wikipedia. Rangos en EUR y USD, ES/EN." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/9d42ed22-4905-4b42-b194-69aaf1477fe6/id-preview-53886746--1bf1330d-7d1c-439b-b4ff-e88318a70e3f.lovable.[...]" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/9d42ed22-4905-4b42-b194-69aaf1477fe6/id-preview-53886746--1bf1330d-7d1c-439b-b4ff-e88318a70e3f.lovable[...]" },
+      {
+        name: "twitter:description",
+        content:
+          "Lume tasa tus objetos por fotografía usando IA y bases de datos públicas como eBay y Wikipedia. Rangos en EUR y USD, ES/EN.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/9d42ed22-4905-4b42-b194-69aaf1477fe6/id-preview-53886746--1bf1330d-7d1c-439b-b4ff-e88318a70e3f.lovable.[...]",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/9d42ed22-4905-4b42-b194-69aaf1477fe6/id-preview-53886746--1bf1330d-7d1c-439b-b4ff-e88318a70e3f.lovable[...]",
+      },
     ],
     links: [
       {
@@ -146,8 +160,7 @@ function RootComponent() {
         position="top-center"
         toastOptions={{
           classNames: {
-            toast:
-              "glass-crystal !bg-transparent !border-primary/40 !text-foreground rounded-2xl",
+            toast: "glass-crystal !bg-transparent !border-primary/40 !text-foreground rounded-2xl",
             title: "!text-foreground font-semibold",
             description: "!text-muted-foreground",
             icon: "!text-primary",
