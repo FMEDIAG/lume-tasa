@@ -159,6 +159,16 @@ export async function exportHistory(): Promise<void> {
 
 function isValuation(v: unknown): v is Valuation {
   const o = v as Valuation;
+  // ... validaciones ...
+  
+  // Map keys a idioma guardado (si aplica)
+  const lang = localStorage.getItem("lume:lang") as Lang || "es";
+  if (lang === "es" && o.category) {
+    o.category = mapEnglishToCategoryKey(o.category); // inverse lookup
+  }
+  
+  return /* ... */;
+}
   return (
     !!o &&
     typeof o === "object" &&
