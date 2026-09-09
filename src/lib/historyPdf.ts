@@ -72,6 +72,12 @@ function bytesToBinaryString(bytes: Uint8Array): string {
   return result;
 }
 
+/** Traduce el nivel de confianza (high/medium/low) al idioma del informe. */
+function confidenceLabel(value: string, lang: PdfLang): string {
+  const dict = translations[lang].confidenceLevels as Record<string, string>;
+  return dict[value] ?? value;
+}
+
 function ts(v: Valuation): number {
   return typeof v.createdAt === "number" ? v.createdAt : new Date(v.createdAt).getTime();
 }
@@ -259,7 +265,7 @@ export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
     }
     if (v.confidence) {
       label(t.confidence);
-      paragraph(String(v.confidence));
+      paragraph(confidenceLabel(String(v.confidence), lang));
     }
     if (v.notes) {
       label(t.notes);
