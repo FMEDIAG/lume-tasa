@@ -93,13 +93,13 @@ export const translations = {
     page: "Página",
     of: "de",
     intro: {
-      lead: "Desde un sello hasta un inmueble: obtén tasaciones instantáneas impulsadas por IA y bases públicas de todo el mundo, combinando datos históricos, comparables reales y análisis automatizado.",
+      lead: "Desde un sello hasta un inmueble: obtén tasaciones instantáneas impulsadas por IA, combinando bases públicas mundiales, datos históricos, comparables reales y análisis automatizado.",
       featuresTitle: "Qué puedes hacer con Lume",
       features: [
         "Tasación universal: objetos pequeños (sellos, monedas, cartas, figuras) y bienes de alto valor (coches, relojes, inmuebles).",
         "IA multimodal: analiza fotos, descripciones y contexto para generar una valoración estimada.",
         "Datos globales: catálogos, registros y comparables reales de fuentes públicas internacionales.",
-        "Resultados en segundos, con rango de precio en EUR y USD y nivel de confianza.",
+        "Resultados en segundos, con rango de precio EUR/USD y nivel de confianza.",
         "Historial de tasaciones consultable, exportable e importable.",
       ],
       howTitle: "Cómo funciona",
@@ -206,7 +206,7 @@ export const translations = {
     page: "Page",
     of: "of",
     intro: {
-      lead: "From a stamp to a property: get instant appraisals powered by AI and public databases worldwide, combining historical data, real comparables and automated analysis.",
+      lead: "From a stamp to a property: get instant appraisals powered by AI, combining global public databases, historical data, real comparables and automated analysis.",
       featuresTitle: "What you can do with Lume",
       features: [
         "Universal appraisal: small items (stamps, coins, cards, figures) and high-value assets (cars, watches, real estate).",
