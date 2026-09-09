@@ -58,7 +58,7 @@ function openDB(): Promise<IDBDatabase> {
 
 function tx<T>(
   mode: IDBTransactionMode,
-  run: (store: IDBObjectStore) => IDBRequest<T>
+  run: (store: IDBObjectStore) => IDBRequest<T>,
 ): Promise<T> {
   return openDB().then(
     (db) =>
@@ -67,7 +67,7 @@ function tx<T>(
         const request = run(transaction.objectStore(STORE));
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
-      })
+      }),
   );
 }
 
@@ -159,16 +159,6 @@ export async function exportHistory(): Promise<void> {
 
 function isValuation(v: unknown): v is Valuation {
   const o = v as Valuation;
-  // ... validaciones ...
-  
-  // Map keys a idioma guardado (si aplica)
-  const lang = localStorage.getItem("lume:lang") as Lang || "es";
-  if (lang === "es" && o.category) {
-    o.category = mapEnglishToCategoryKey(o.category); // inverse lookup
-  }
-  
-  return /* ... */;
-}
   return (
     !!o &&
     typeof o === "object" &&
@@ -186,9 +176,7 @@ function isValuation(v: unknown): v is Valuation {
 export async function importHistory(json: string): Promise<number> {
   if (typeof window === "undefined" || !("indexedDB" in window)) return 0;
   const parsed: unknown = JSON.parse(json);
-  const raw = Array.isArray(parsed)
-    ? parsed
-    : ((parsed as { items?: unknown[] })?.items ?? null);
+  const raw = Array.isArray(parsed) ? parsed : ((parsed as { items?: unknown[] })?.items ?? null);
   if (!Array.isArray(raw)) throw new Error("Formato de archivo no válido");
 
   const validated = raw.filter((item) => {
