@@ -30,7 +30,7 @@ const L = {
     byCategory: "Por categoría",
     page: "Página",
     empty: "No hay tasaciones en el historial.",
-    footer: "©2026 FMEDIAG - App Lume v1.0",
+    footer: "©2026 FMEDIAG - App Lume",
   },
   en: {
     title: "Appraisal Report",
@@ -50,7 +50,7 @@ const L = {
     byCategory: "By category",
     page: "Page",
     empty: "No appraisals in history.",
-    footer: "©2026 FMEDIAG - App Lume v1.0",
+    footer: "©2026 FMEDIAG - App Lume",
   },
 };
 
@@ -76,10 +76,16 @@ function ts(v: Valuation): number {
   return typeof v.createdAt === "number" ? v.createdAt : new Date(v.createdAt).getTime();
 }
 
-/** Traduce la clave interna de categoría (p.ej. "realestate") al idioma del informe. */
+/** Traduce la clave interna de categoría (p.ej. "realestate") al idioma del informe.
+ * Si la clave no está en el diccionario (categoría antigua o inesperada), la capitaliza
+ * en vez de mostrarla en minúsculas sin tratar. */
 function categoryLabel(key: string, lang: PdfLang): string {
   const dict = translations[lang].categories as Record<string, string>;
-  return dict[key] ?? key;
+  if (dict[key]) return dict[key];
+  return key
+    .split(" ")
+    .map((word) => (word ? word[0].toUpperCase() + word.slice(1) : word))
+    .join(" ");
 }
 
 export async function exportHistoryPdf(lang: PdfLang = "es"): Promise<void> {
