@@ -237,7 +237,13 @@ BASQUE COUNTRY is a high-price market: never substitute national or province-wid
           "Lovable-API-Key": apiKey,
         },
         body: JSON.stringify({
-          model: "google/gemini-3.6-flash",
+          // Experimento: ":online" activa búsqueda web real en gateways estilo OpenRouter.
+          // Sin esto, el modelo NO consulta internet en vivo — genera precios y fuentes
+          // solo a partir de lo aprendido en entrenamiento, lo que puede desviarse mucho
+          // en objetos con precio muy variable (oro, cripto, mercados volátiles).
+          // Si el gateway de Lovable no soporta esta sintaxis, quitar ":online" y volver
+          // a "google/gemini-3.6-flash".
+          model: "google/gemini-3.6-flash:online",
           messages: [
             {
               role: "system",
