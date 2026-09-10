@@ -262,9 +262,11 @@ BASQUE COUNTRY is a high-price market: never substitute national or province-wid
       );
     } catch (err) {
       const isAbort = err instanceof Error && err.name === "AbortError";
-      console.error(`[valuateItem] Gemini fetch failed: ${isAbort ? "timeout" : String(err)}`);
+      const detail = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+      console.error(`[valuateItem] Gemini fetch failed: ${isAbort ? "timeout" : detail}`);
       setResponseStatus(isAbort ? 504 : 502);
-      throw new Error(isAbort ? "Valuation service timed out" : "Valuation service unavailable");
+      // TEMPORAL (debug): mensaje real de la excepción en vez del genérico.
+      throw new Error(isAbort ? "Valuation service timed out" : `Fetch failed: ${detail}`);
     } finally {
       clearTimeout(timeout);
     }
@@ -273,7 +275,9 @@ BASQUE COUNTRY is a high-price market: never substitute national or province-wid
       const text = await res.text();
       console.error(`[valuateItem] Gemini API error [${res.status}]: ${text.slice(0, 500)}`);
       setResponseStatus(502);
-      throw new Error("Valuation service unavailable");
+      // TEMPORAL (debug): incluimos el status y el cuerpo real del error de Gemini
+      // en el mensaje, para poder verlo en pantalla sin acceso a los logs del servidor.
+      throw new Error(`Gemini HTTP ${res.status}: ${text.slice(0, 300)}`);
     }
 
     const json = (await res.json()) as {
