@@ -156,9 +156,9 @@ function toNumberLoose(val: unknown): number {
 export const valuateItem = createServerFn({ method: "POST" })
   .validator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data }) => {
-    const apiKey = process.env.LOVABLE_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      console.error("[valuateItem] Missing LOVABLE_API_KEY");
+      console.error("[valuateItem] Missing GEMINI_API_KEY");
       setResponseStatus(500);
       throw new Error("Valuation service misconfigured");
     }
@@ -217,12 +217,17 @@ BASQUE COUNTRY is a high-price market: never substitute national or province-wid
       categoryLine +
       conditionLine;
 
-    const content: Array<Record<string, unknown>> = [
-      { type: "text", text: userPrompt },
-      ...data.photos.map((p) => ({
-        type: "image_url",
-        image_url: { url: p.dataUrl },
-      })),
+    /** Separa una data URL ("data:image/jpeg;base64,AAAA...") en mimeType + base64 puro,
+     * que es el formato que exige la API nativa de Gemini (inlineData). */
+    function parseDataUrl(dataUrl: string): { mimeType: string; data: string } {
+      const match = /^data:([^;]+);base64,(.*)$/s.exec(dataUrl);
+      if (!match) throw new Error("Invalid photo data URL");
+      return { mimeType: match[1], data: match[2] };
+    }
+
+    const parts: Array<Record<string, unknown>> = [
+      { text: userPrompt },
+      ...data.photos.map((p) => ({ inlineData: parseDataUrl(p.dataUrl) })),
     ];
 
     const controller = new AbortController();
@@ -230,30 +235,34 @@ BASQUE COUNTRY is a high-price market: never substitute national or province-wid
 
     let res: Response;
     try {
-      res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Lovable-API-Key": apiKey,
-        },
-        body: JSON.stringify({
-          // Se probó ":online" (sufijo estilo OpenRouter para forzar búsqueda web real) pero
-          // el gateway de Lovable no lo soporta y rompía la tasación. Revertido.
-          model: "google/gemini-3.6-flash",
-          messages: [
-            {
-              role: "system",
-              content: data.lang === "es" ? systemEs : systemEn,
+      res = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": apiKey,
+          },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts }],
+            systemInstruction: {
+              parts: [{ text: data.lang === "es" ? systemEs : systemEn }],
             },
-            { role: "user", content },
-          ],
-          response_format: { type: "json_object" },
-        }),
-        signal: controller.signal,
-      });
+            // Búsqueda real en Google Search: el modelo consulta internet de verdad
+            // antes de responder, en vez de generar precios solo de memoria.
+            // NOTA: no forzamos responseMimeType "application/json" aquí porque en
+            // varias versiones de Gemini eso da error 400 ("Tool use with a response
+            // mime type: 'application/json' is unsupported") al combinarlo con
+            // google_search. En su lugar, el prompt ya pide "SOLO JSON" y abajo se
+            // extrae el JSON de forma tolerante por si el modelo añade texto de más.
+            tools: [{ googleSearch: {} }],
+          }),
+          signal: controller.signal,
+        },
+      );
     } catch (err) {
       const isAbort = err instanceof Error && err.name === "AbortError";
-      console.error(`[valuateItem] Gateway fetch failed: ${isAbort ? "timeout" : String(err)}`);
+      console.error(`[valuateItem] Gemini fetch failed: ${isAbort ? "timeout" : String(err)}`);
       setResponseStatus(isAbort ? 504 : 502);
       throw new Error(isAbort ? "Valuation service timed out" : "Valuation service unavailable");
     } finally {
@@ -262,15 +271,29 @@ BASQUE COUNTRY is a high-price market: never substitute national or province-wid
 
     if (!res.ok) {
       const text = await res.text();
-      console.error(`[valuateItem] AI gateway error [${res.status}]: ${text.slice(0, 500)}`);
+      console.error(`[valuateItem] Gemini API error [${res.status}]: ${text.slice(0, 500)}`);
       setResponseStatus(502);
       throw new Error("Valuation service unavailable");
     }
 
     const json = (await res.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
     };
-    const raw = json.choices?.[0]?.message?.content ?? "{}";
+    const rawText = json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+
+    /** El modelo, con google_search activo, a veces añade texto o backticks
+     * alrededor del JSON pese a que el prompt pide "SOLO JSON". Extrae el primer
+     * bloque {...} válido en vez de asumir que la respuesta es JSON puro. */
+    function extractJson(text: string): string {
+      const fenced = /```(?:json)?\s*([\s\S]*?)```/i.exec(text);
+      if (fenced) return fenced[1].trim();
+      const start = text.indexOf("{");
+      const end = text.lastIndexOf("}");
+      if (start !== -1 && end !== -1 && end > start) return text.slice(start, end + 1);
+      return text.trim();
+    }
+
+    const raw = extractJson(rawText) || "{}";
 
     let parsed: unknown;
     try {
