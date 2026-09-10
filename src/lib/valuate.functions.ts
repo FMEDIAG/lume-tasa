@@ -1,14 +1,13 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Inicialización del cliente de Gemini utilizando la API Key guardada en las variables de entorno
-const ai = new GoogleGenAI({
-  apiKey: import.meta.env.VITE_GEMINI_API_KEY || "",
-});
+// Inicialización de Gemini con la librería instalada en el proyecto
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
+const genAI = new GoogleGenerativeAI(apiKey);
 
 export type ConfidenceLevel = "high" | "medium" | "low";
 
 export interface ValuateOptions {
-  photos: string[]; // Lista de imágenes codificadas en Base64 (ej: "data:image/jpeg;base64,...")
+  photos: string[];
   category?: string;
   condition?: string;
   context?: string;
@@ -26,7 +25,7 @@ export interface AppraisalResult {
 }
 
 /**
- * Convierte una cadena de imagen base64 al formato compatible con Gemini InlineData
+ * Convierte imagen base64 al formato inline compatible con GenerativeAI
  */
 function formatInlineData(base64String: string) {
   const match = base64String.match(/^data:(image\/\w+);base64,(.*)$/);
@@ -47,16 +46,14 @@ function formatInlineData(base64String: string) {
 }
 
 /**
- * Función principal para tasar objetos con Gemini 2.5 Flash + Búsqueda Web en tiempo real (Google Grounding)
+ * Función principal para tasar objetos
  */
 export async function valuateItem(options: ValuateOptions): Promise<AppraisalResult> {
   const { photos, category = "auto", condition = "unknown", context = "", lang = "es" } = options;
 
   try {
-    // 1. Convertir imágenes enviadas al formato multimodal de Gemini
     const imageParts = photos.map(formatInlineData);
 
-    // 2. Construir la consulta detallada para el modelo
     const promptText = `
 Analiza la(s) imagen(es) adjunta(s) y la información del objeto para realizar una tasación profesional:
 - Categoría seleccionada: ${category}
@@ -65,10 +62,10 @@ Analiza la(s) imagen(es) adjunta(s) y la información del objeto para realizar u
 - Idioma de respuesta: ${lang === "es" ? "Español" : "Inglés"}
 
 INSTRUCCIONES Y REGLAS DE TASACIÓN:
-1. Utiliza la Búsqueda en Google para encontrar cotizaciones actuales, ventas recientes finalizadas o comparables en el mercado global.
+1. Consulta el mercado global para conocer el valor real actual.
 2. Si el objeto contiene metales preciosos (oro, plata, platino) o es una moneda/lingote:
    - Busca en internet la cotización SPOT actual por gramo o por onza en EUR/USD.
-   - Calcula el valor base: Peso (g) * (Pureza / 1000) * Precio Spot por gramo.
+   - Calcula el valor base: Peso (g) * Pureza * Precio Spot.
    - JAMÁS restes importes arbitrarios ni devuelvas un resultado negativo. El importe DEBE ser estrictamente positivo.
 3. Responde **ÚNICAMENTE** en formato JSON válido dentro de un bloque de código \`\`\`json con esta estructura:
 {
@@ -83,29 +80,27 @@ INSTRUCCIONES Y REGLAS DE TASACIÓN:
 *(Nota: El campo "confidence" debe tomar estrictamente uno de estos tres valores: "high", "medium" o "low")*
 `;
 
-    // 3. Petición a Gemini con Google Search activado
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: [...imageParts, promptText],
-      config: {
-        tools: [{ googleSearch: {} }],
-        systemInstruction:
-          "Eres el perito tasador de Lume. Realizas valoraciones precisas y realistas respaldadas por datos actuales de internet. Garantizas cálculos matemáticos correctos y positivos.",
-      },
+    // Configuración del modelo usando la SDK @google/generative-ai
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
+      systemInstruction:
+        "Eres el perito tasador de Lume. Realizas valoraciones precisas y realistas respaldadas por datos actuales de internet. Garantizas cálculos matemáticos correctos y positivos.",
     });
 
-    const rawText = response.text || "";
+    const result = await model.generateContent([...imageParts, promptText]);
+    const response = await result.response;
+    const rawText = response.text() || "";
 
-    // 4. Extraer los enlaces web reales de las fuentes consultadas por Google Search Grounding
-    const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+    // Extraer fuentes de grounding si están disponibles en la respuesta
+    const candidates = response.candidates;
+    const groundingChunks = (candidates?.[0] as any)?.groundingMetadata?.groundingChunks || [];
     const sources = groundingChunks
-      .filter((chunk) => chunk.web?.uri)
-      .map((chunk) => ({
+      .filter((chunk: any) => chunk.web?.uri)
+      .map((chunk: any) => ({
         title: chunk.web?.title || chunk.web?.uri || "Fuente pública de mercado",
         url: chunk.web?.uri || "",
       }));
 
-    // 5. Parsear la respuesta JSON devuelta por el modelo
     const parsedData = parseGeminiJsonResponse(rawText);
 
     const priceMin = Math.max(0, parsedData.priceMin || 0);
@@ -127,7 +122,7 @@ INSTRUCCIONES Y REGLAS DE TASACIÓN:
 }
 
 /**
- * Función para detectar automáticamente la categoría a partir de las fotos
+ * Función para detectar automáticamente la categoría
  */
 export async function detectCategoryFromPhotos(photos: string[]): Promise<string> {
   if (!photos || photos.length === 0) return "auto";
@@ -139,12 +134,11 @@ export async function detectCategoryFromPhotos(photos: string[]): Promise<string
 
 Responde ÚNICAMENTE con la clave exacta de la categoría (ejemplo: "coins" o "watches").`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: [...imageParts, prompt],
-    });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const result = await model.generateContent([...imageParts, prompt]);
+    const response = await result.response;
 
-    const categoryDetected = (response.text || "").trim().toLowerCase();
+    const categoryDetected = (response.text() || "").trim().toLowerCase();
     return categoryDetected || "other";
   } catch (err) {
     console.error("Error al detectar la categoría:", err);
@@ -152,9 +146,6 @@ Responde ÚNICAMENTE con la clave exacta de la categoría (ejemplo: "coins" o "w
   }
 }
 
-/**
- * Funciones auxiliares para procesar el JSON devuelto y validar campos
- */
 function parseGeminiJsonResponse(rawText: string): any {
   try {
     const jsonMatch = rawText.match(/```json\s*([\s\S]*?)\s*```/) || rawText.match(/\{[\s\S]*\}/);
