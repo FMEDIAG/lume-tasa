@@ -19,7 +19,7 @@ export interface AppraisalResult {
 }
 
 /**
- * Convierte una imagen en formato base64 al formato estructurado de Gemini API
+ * Convierte imagen base64 al formato compatible con Gemini REST API
  */
 function formatInlineData(base64String: string) {
   let mimeType = "image/jpeg";
@@ -40,7 +40,7 @@ function formatInlineData(base64String: string) {
 }
 
 /**
- * Llamada directa HTTP a la API REST de Gemini (Sin librerías npm)
+ * Llamada REST a Gemini con Google Search Grounding activado
  */
 async function callGeminiRestApi(contents: any[], systemInstructionText?: string) {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY || "";
@@ -55,6 +55,12 @@ async function callGeminiRestApi(contents: any[], systemInstructionText?: string
     contents: [
       {
         parts: contents,
+      },
+    ],
+    // Habilita la búsqueda web en tiempo real para obtener precios reales de mercado
+    tools: [
+      {
+        google_search: {},
       },
     ],
   };
@@ -79,13 +85,11 @@ async function callGeminiRestApi(contents: any[], systemInstructionText?: string
     throw new Error(`Error ${response.status}: ${response.statusText}`);
   }
 
-  const data = await response.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-  return text;
+  return await response.json();
 }
 
 /**
- * Función principal de tasación
+ * Función principal para tasar objetos al valor real de mercado
  */
 export async function valuateItem(options: ValuateOptions): Promise<AppraisalResult> {
   const { photos, category = "auto", condition = "unknown", context = "", lang = "es" } = options;
@@ -94,36 +98,47 @@ export async function valuateItem(options: ValuateOptions): Promise<AppraisalRes
     const imageParts = (photos || []).map(formatInlineData);
 
     const promptText = `
-Analiza la(s) imagen(es) adjunta(s) y la información del objeto para realizar una tasación profesional:
-- Categoría seleccionada: ${category}
+Analiza exhaustivamente la(s) imagen(es) adjunta(s) y la información provista para realizar una tasación profesional:
+- Categoría: ${category}
 - Condición del objeto: ${condition}
 - Contexto adicional: ${context || "Ninguno"}
 - Idioma de respuesta: ${lang === "es" ? "Español" : "Inglés"}
 
-INSTRUCCIONES Y REGLAS DE TASACIÓN:
-1. Revisa el valor real de mercado del objeto.
-2. Si el objeto contiene metales preciosos (oro, plata, platino) o es una moneda/lingote:
-   - Aplica la cotización SPOT actual del mercado.
-   - Calcula el valor base: Peso (g) * Pureza del metal * Precio Spot por gramo.
-   - JAMÁS restes importes arbitrarios ni devuelvas un valor negativo. El importe DEBE ser estrictamente positivo.
-3. Responde ÚNICAMENTE en formato JSON válido dentro de un bloque de código \`\`\`json con esta estructura exactas:
+INSTRUCCIONES OBLIGATORIAS DE VALORACIÓN DE MERCADO REAL:
+1. BUSCA EN INTERNET (usando Google Search) precios actuales de venta final de este artículo o artículos idénticos/similares en plataformas reales de segunda mano, subastas, portales especializados (eBay, Chrono24, Catawiki, etc.).
+2. Determina el VALOR REAL DE MERCADO FINAL (precio de compra/venta estimado entre particulares o mercado minorista). NO calcules precios de empeño, ni de chatarrería, ni precios de liquidación rápida por debajo del valor.
+3. Si el objeto posee valor histórico, de marca, numismático o estético, súmalo al valor comercial (no te limites al peso del material si la pieza vale más como obra, joya o antigüedad).
+4. Para metales preciosos (oro, plata, etc.), utiliza la cotización SPOT actual internacional en EUR/USD y añade las primas correspondientes según el estado y tipo de pieza.
+
+Responde ÚNICAMENTE con un JSON válido dentro de un bloque de código \`\`\`json con la siguiente estructura exactas:
 {
-  "identification": "Nombre e identificación precisa del objeto",
+  "identification": "Nombre e identificación exacta del artículo, fabricante, modelo o época",
   "priceMin": 850,
   "priceMax": 1000,
   "currency": "EUR",
   "confidence": "high",
-  "notes": "Detalles del cálculo realizado, valores de referencia y explicación."
+  "notes": "Explicación detallada del valor asignado, comparativa de mercado encontradas en internet y desglose si aplica."
 }
 
 (El campo "confidence" debe ser estrictamente: "high", "medium" o "low").
 `;
 
     const systemInstruction =
-      "Eres el perito tasador oficial de Lume. Realizas valoraciones precisas respaldadas por datos de mercado. Garantizas resultados matemáticos correctos y positivos.";
+      "Eres un perito tasador sénior experto en mercado internacional y coleccionismo. Buscas precios reales en internet y valoras los artículos a su precio justo de mercado minorista/segunda mano sin minusvalorarlos.";
 
     const contents = [...imageParts, { text: promptText }];
-    const rawText = await callGeminiRestApi(contents, systemInstruction);
+    const apiResult = await callGeminiRestApi(contents, systemInstruction);
+
+    const rawText = apiResult?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+    // Extraer enlaces y fuentes encontradas durante la búsqueda en tiempo real
+    const groundingChunks = apiResult?.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+    const extractedSources = groundingChunks
+      .filter((chunk: any) => chunk.web?.uri)
+      .map((chunk: any) => ({
+        title: chunk.web?.title || "Referencia de mercado en internet",
+        url: chunk.web?.uri || "",
+      }));
 
     const parsedData = parseGeminiJsonResponse(rawText);
 
@@ -136,7 +151,7 @@ INSTRUCCIONES Y REGLAS DE TASACIÓN:
       priceMax,
       currency: parsedData.currency || "EUR",
       confidence: validateConfidence(parsedData.confidence),
-      sources: [{ title: "Mercado de valores e índices públicos", url: "https://google.com" }],
+      sources: extractedSources.length > 0 ? extractedSources : [{ title: "Búsqueda web en tiempo real", url: "https://google.com" }],
       notes: parsedData.notes || rawText,
     };
   } catch (error) {
@@ -146,20 +161,21 @@ INSTRUCCIONES Y REGLAS DE TASACIÓN:
 }
 
 /**
- * Función para detección de categorías
+ * Función para detección automática de categorías
  */
 export async function detectCategoryFromPhotos(photos: string[]): Promise<string> {
   if (!photos || photos.length === 0) return "auto";
 
   try {
     const imageParts = photos.map(formatInlineData);
-    const promptText = `Identifica la categoría del objeto de las fotos entre estas opciones:
+    const promptText = `Identifica la categoría exacta del objeto en las fotos de entre estas opciones:
 [art, cards, coins, stamps, watches, jewelry, electronics, books, music instrument, toys, vinyl, fashion, sports, memorabilia, bonsai, wine, furniture, militaria, luxury bags, minerals, gemstones, vehicles, boats, realestate, other]
 
-Responde ÚNICAMENTE con la clave de la categoría (ejemplo: "coins" o "watches").`;
+Responde ÚNICAMENTE con la clave exacta (ejemplo: "coins" o "watches").`;
 
     const contents = [...imageParts, { text: promptText }];
-    const rawText = await callGeminiRestApi(contents);
+    const apiResult = await callGeminiRestApi(contents);
+    const rawText = apiResult?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     const categoryDetected = rawText.trim().toLowerCase().replace(/[^a-z_]/g, "");
     return categoryDetected || "other";
