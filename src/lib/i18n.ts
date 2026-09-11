@@ -99,7 +99,7 @@ export const translations = {
         "Tasación universal: objetos pequeños (sellos, monedas, cartas, figuras) y bienes de alto valor (coches, relojes, inmuebles).",
         "IA multimodal: analiza fotos, descripciones y contexto para generar una valoración estimada.",
         "Datos globales: catálogos, registros y comparables reales de fuentes públicas internacionales.",
-        "Resultados en segundos, con rango de precio EURUSD y nivel de confianza.",
+        "Resultados en segundos, con rango de precio EUR/USD y nivel de confianza.",
         "Historial de tasaciones consultable, exportable e importable.",
       ],
       howTitle: "Cómo funciona",
