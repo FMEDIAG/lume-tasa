@@ -188,11 +188,7 @@ function Index() {
       setResult({ ...r, thumbnail: photos[0].dataUrl });
     } catch (e) {
       console.error(e);
-      // TEMPORAL (debug): mostramos el mensaje real del error además del genérico,
-      // para diagnosticar el problema de Gemini sin necesitar la consola del navegador.
-      // Quitar en cuanto quede identificado el problema.
-      const detail = e instanceof Error ? e.message : String(e);
-      setError(`${t.error} [DEBUG: ${detail}]`);
+      setError(t.error);
     } finally {
       setLoading(false);
     }
