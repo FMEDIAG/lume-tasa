@@ -54,6 +54,7 @@ function HistoryPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [compareMode, setCompareMode] = useState(false);
   const [showCompare, setShowCompare] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -176,24 +177,34 @@ function HistoryPage() {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <h1 className="flex-1 text-xl font-semibold text-gradient-gold">{t.history}</h1>
-          <button
-            type="button"
-            onClick={() => void handleExport()}
-            className="glass-crystal flex h-10 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-primary transition hover:bg-primary/15"
-            aria-label={t.exportHistory}
-          >
-            <ArrowUp className="h-4 w-4" />
-            <span className="hidden sm:inline">{t.exportHistory}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            className="glass-crystal flex h-10 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-primary transition hover:bg-primary/15"
-            aria-label={t.importHistory}
-          >
-            <ArrowDown className="h-4 w-4" />
-            <span className="hidden sm:inline">{t.importHistory}</span>
-          </button>
+          <div className="flex flex-col items-center gap-0.5">
+            <button
+              type="button"
+              onClick={() => void handleExport()}
+              className="glass-crystal flex h-10 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-primary transition hover:bg-primary/15"
+              aria-label={t.exportHistory}
+            >
+              <ArrowUp className="h-4 w-4" />
+              <span className="hidden sm:inline">{t.exportHistory}</span>
+            </button>
+            <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+              PDF
+            </span>
+          </div>
+          <div className="flex flex-col items-center gap-0.5">
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              className="glass-crystal flex h-10 items-center gap-1.5 rounded-full px-3 text-xs font-semibold text-primary transition hover:bg-primary/15"
+              aria-label={t.importHistory}
+            >
+              <ArrowDown className="h-4 w-4" />
+              <span className="hidden sm:inline">{t.importHistory}</span>
+            </button>
+            <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+              PDF
+            </span>
+          </div>
           <input
             ref={fileRef}
             type="file"
@@ -233,17 +244,38 @@ function HistoryPage() {
 
         {items.length > 1 && (
           <div className="mt-3 flex items-center justify-between gap-2">
-            <p className="text-[11px] text-muted-foreground">{t.compareHint}</p>
-            {compareIds.length >= 2 && (
+            {compareMode ? (
+              <p className="text-[11px] text-muted-foreground">{t.compareHint}</p>
+            ) : (
+              <span />
+            )}
+            <div className="flex shrink-0 items-center gap-2">
+              {compareMode && compareIds.length >= 2 && (
+                <button
+                  type="button"
+                  onClick={() => setShowCompare(true)}
+                  className="glass-crystal flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/15"
+                >
+                  <Scale className="h-3.5 w-3.5" />
+                  {t.compareSelected(compareIds.length)}
+                </button>
+              )}
               <button
                 type="button"
-                onClick={() => setShowCompare(true)}
-                className="glass-crystal flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/15"
+                onClick={() => {
+                  setCompareMode((v) => !v);
+                  setCompareIds([]);
+                }}
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                  compareMode
+                    ? "bg-primary/20 text-primary"
+                    : "glass-crystal text-primary hover:bg-primary/15"
+                }`}
               >
-                <Scale className="h-3.5 w-3.5" />
-                {t.compareSelected(compareIds.length)}
+                {!compareMode && <Scale className="h-3.5 w-3.5" />}
+                {compareMode ? t.cancel : t.compare}
               </button>
-            )}
+            </div>
           </div>
         )}
 
@@ -271,30 +303,32 @@ function HistoryPage() {
                       aria-expanded={isOpen}
                       className="flex w-full gap-3 text-left"
                     >
-                      <span
-                        role="checkbox"
-                        aria-checked={compareIds.includes(v.id)}
-                        tabIndex={0}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleCompare(v.id);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
+                      {compareMode && (
+                        <span
+                          role="checkbox"
+                          aria-checked={compareIds.includes(v.id)}
+                          tabIndex={0}
+                          onClick={(e) => {
                             e.stopPropagation();
-                            e.preventDefault();
                             toggleCompare(v.id);
-                          }
-                        }}
-                        aria-label={t.compare}
-                        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition ${
-                          compareIds.includes(v.id)
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : "border-primary/40 bg-background/40 text-transparent"
-                        }`}
-                      >
-                        <Check className="h-3.5 w-3.5" />
-                      </span>
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              toggleCompare(v.id);
+                            }
+                          }}
+                          aria-label={t.compare}
+                          className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition ${
+                            compareIds.includes(v.id)
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-primary/40 bg-background/40 text-transparent"
+                          }`}
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                        </span>
+                      )}
                       <img
                         src={v.thumbnail}
                         alt=""
