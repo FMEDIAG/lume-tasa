@@ -101,13 +101,14 @@ function Index() {
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
   const [macroOpen, setMacroOpen] = useState(false);
-  const [showIntro, setShowIntro] = useState(true);
+  const [showIntro, setShowIntro] = useState<boolean | null>(null);
 
   useEffect(() => {
     try {
-      if (localStorage.getItem(INTRO_SEEN_KEY)) setShowIntro(false);
+      setShowIntro(!localStorage.getItem(INTRO_SEEN_KEY));
     } catch {
-      // localStorage no disponible: no bloqueamos, simplemente no persistimos la preferencia.
+      // localStorage no disponible: mostramos la intro igualmente, sin persistir la preferencia.
+      setShowIntro(true);
     }
   }, []);
 
@@ -243,7 +244,7 @@ function Index() {
   return (
     <>
       {showIntro && <IntroScreen onStart={() => setShowIntro(false)} />}
-      <div className={showIntro ? "hidden" : "relative min-h-screen overflow-hidden"}>
+      <div className={showIntro === false ? "relative min-h-screen overflow-hidden" : "hidden"}>
         <BackgroundGlow />
         <div className="relative mx-auto max-w-xl px-5 pb-24 pt-8">
           <header className="flex items-center justify-between">
