@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequest, setResponseStatus } from "@tanstack/react-start/server";
+import { setResponseStatus } from "@tanstack/react-start/server";
 import { z } from "zod";
+import { chatCompletion, clientIp, isAllowedOrigin, requestOriginHost } from "@/lib/lume-ai";
 
 const MAX_PHOTO_CHARS = 1_500_000;
 
@@ -48,7 +49,6 @@ const OutputSchema = z.object({
   candidates: z.array(CandidateSchema).min(1).max(5),
 });
 
-// Reuse a lightweight rate limit (per isolate, best-effort).
 const buckets = new Map<string, number[]>();
 const WINDOW = 60_000;
 const MAX_PER_IP = 20;
@@ -65,45 +65,19 @@ function allowed(ip: string): boolean {
   return true;
 }
 
-function isAllowedOrigin(origin: string | null, host: string | null): boolean {
-  if (!origin) return false;
-  let originHost: string;
-  try {
-    originHost = new URL(origin).host;
-  } catch {
-    return false;
-  }
-  if (host && originHost === host) return true;
-  if (
-    /(^|\.)lovable\.app$/.test(originHost) ||
-    /(^|\.)lovable\.dev$/.test(originHost) ||
-    /(^|\.)lovableproject\.com$/.test(originHost)
-  ) {
-    return true;
-  }
-  if (/^localhost(:\d+)?$/.test(originHost) || /^127\.0\.0\.1(:\d+)?$/.test(originHost))
-    return true;
-  return false;
-}
-
 export const detectCategory = createServerFn({ method: "POST" })
   .validator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data }) => {
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
+    if (!process.env.XAI_API_KEY && !process.env.LOVABLE_API_KEY) {
+      throw new Error("AI is not available in this environment");
+    }
 
-    const request = getRequest();
-    const origin = request?.headers.get("origin") ?? request?.headers.get("referer") ?? null;
-    const host = request?.headers.get("host") ?? null;
+    const { origin, host } = requestOriginHost();
     if (!isAllowedOrigin(origin, host)) {
       setResponseStatus(403);
       throw new Error("Forbidden");
     }
-    const ip =
-      request?.headers.get("cf-connecting-ip") ??
-      request?.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      request?.headers.get("x-real-ip") ??
-      "unknown";
+    const ip = clientIp();
     if (!allowed(ip)) {
       setResponseStatus(429);
       throw new Error("Too many requests");
@@ -111,44 +85,32 @@ export const detectCategory = createServerFn({ method: "POST" })
 
     const system =
       data.lang === "es"
-        ? `Eres un clasificador experto. Mira la foto y devuelve las 3 categorías más probables del objeto de esta lista EXACTA (usa la clave en inglés): art, cards, coins, stamps, watches, jewelry, electronics, books, music instrument, toys, vinyl, fashion, sports, memorabilia, bonsai, wine, furniture, militaria, luxury bags, minerals, gemstones, vehicles, boats, realestate, other. Usa "memorabilia" para autógrafos, objetos de cine, música o historia sin relación con el deporte, y "sports" solo para objetos deportivos (camisetas, balones, medallas, cartas de deportistas). Usa "bonsai" para árboles en maceta con estilo de bonsái. Usa "wine" para botellas de vino, cava, champán o licores. Usa "furniture" para muebles antiguos o de época. Usa "militaria" para objetos militares históricos (medallas, insignias, uniformes, cascos). Usa "luxury bags" para bolsos y complementos de marcas de lujo (no ropa general, que va en "fashion"). Usa "minerals" para especímenes de minerales o rocas en bruto sin tallar (cristales, geodas, fósiles). Usa "gemstones" para gemas o piedras preciosas sueltas ya talladas/pulidas pero sin montar en joya (si están montadas en un anillo, collar, etc., usa "jewelry"). Devuelve SOLO JSON: {"category":"<mejor_clave>","confidence":<0-100>,"candidates":[{"category":"<clave>","confidence":<0-100>}, ...3 elementos ordenados por confianza descendente]}. Las confidencias deben ser porcentajes enteros y sumar aproximadamente 100.`
-        : `You are an expert classifier. Look at the photo and return the top 3 most likely categories from this EXACT list (use the English key): art, cards, coins, stamps, watches, jewelry, electronics, books, music instrument, toys, vinyl, fashion, sports, memorabilia, bonsai, wine, furniture, militaria, luxury bags, minerals, gemstones, vehicles, boats, realestate, other. Use "memorabilia" for autographs, film, music or historical items unrelated to sports, and "sports" only for sports-specific items (jerseys, balls, medals, athlete trading cards). Use "bonsai" for potted trees styled as bonsai. Use "wine" for wine, champagne or spirits bottles. Use "furniture" for antique or period furniture. Use "militaria" for historic military items (medals, insignia, uniforms, helmets). Use "luxury bags" for luxury-brand bags and accessories (not general clothing, which goes in "fashion"). Use "minerals" for raw, uncut mineral or rock specimens (crystals, geodes, fossils). Use "gemstones" for cut/polished loose gems not mounted in a piece of jewelry (if mounted in a ring, necklace, etc., use "jewelry" instead). Return ONLY JSON: {"category":"<best_key>","confidence":<0-100>,"candidates":[{"category":"<key>","confidence":<0-100>}, ...3 items ordered by descending confidence]}. Confidences are integer percentages and should sum to roughly 100.`;
+        ? `Eres un clasificador experto. Mira la foto y devuelve las 3 categorías más probables del objeto de esta lista EXACTA (usa la clave en inglés): art, cards, coins, stamps, watches, jewelry, electronics, books, music instrument, toys, vinyl, fashion, sports, memorabilia, bonsai, wine, furniture, militaria, luxury bags, minerals, gemstones, vehicles, boats, realestate, other. Usa "memorabilia" para autógrafos, objetos de cine, música o historia sin relación con el deporte, y "sports" solo para objetos deportivos (camisetas, balones, medallas, cartas de deportistas). Usa "bonsai" para árboles en maceta con estilo de bonsái. Usa "wine" para botellas de vino, cava, champán o licores. Usa "furniture" para muebles antiguos o de época. Usa "militaria" para objetos militares históricos (medallas, insignias, uniformes, cascos). Usa "luxury bags" para bolsos y complementos de marcas de lujo (no ropa general, que va en "fashion"). Usa "minerals" para especímenes de minerales o rocas en bruto sin tallar (cristales, geodas, fósiles). Usa "gemstones" para gemas o piedras preciosas sueltas ya talladas/pulidas pero sin montar en joya (si están montadas en un anillo, collar, etc., usa "jewelry"). Usa "coins" para monedas, billetes y piezas numismáticas encapsuladas (NGC/PCGS). Devuelve SOLO JSON: {"category":"<mejor_clave>","confidence":<0-100>,"candidates":[{"category":"<clave>","confidence":<0-100>}, ...3 elementos ordenados por confianza descendente]}. Las confidencias deben ser porcentajes enteros y sumar aproximadamente 100.`
+        : `You are an expert classifier. Look at the photo and return the top 3 most likely categories from this EXACT list (use the English key): art, cards, coins, stamps, watches, jewelry, electronics, books, music instrument, toys, vinyl, fashion, sports, memorabilia, bonsai, wine, furniture, militaria, luxury bags, minerals, gemstones, vehicles, boats, realestate, other. Use "memorabilia" for autographs, film, music or historical items unrelated to sports, and "sports" only for sports-specific items (jerseys, balls, medals, athlete trading cards). Use "bonsai" for potted trees styled as bonsai. Use "wine" for wine, champagne or spirits bottles. Use "furniture" for antique or period furniture. Use "militaria" for historic military items (medals, insignia, uniforms, helmets). Use "luxury bags" for luxury-brand bags and accessories (not general clothing, which goes in "fashion"). Use "minerals" for raw, uncut mineral or rock specimens (crystals, geodes, fossils). Use "gemstones" for cut/polished loose gems not mounted in a piece of jewelry (if mounted in a ring, necklace, etc., use "jewelry" instead). Use "coins" for coins, banknotes and slabbed numismatic pieces (NGC/PCGS). Return ONLY JSON: {"category":"<best_key>","confidence":<0-100>,"candidates":[{"category":"<key>","confidence":<0-100>}, ...3 items ordered by descending confidence]}. Confidences are integer percentages and should sum to roughly 100.`;
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Lovable-API-Key": apiKey,
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: system },
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: data.lang === "es" ? "Clasifica este objeto." : "Classify this item.",
-              },
-              { type: "image_url", image_url: { url: data.dataUrl } },
-            ],
-          },
-        ],
-        response_format: { type: "json_object" },
-      }),
+    const { text } = await chatCompletion({
+      messages: [
+        { role: "system", content: system },
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: data.lang === "es" ? "Clasifica este objeto." : "Classify this item.",
+            },
+            { type: "image_url", image_url: { url: data.dataUrl, detail: "low" } },
+          ],
+        },
+      ],
+      json: true,
+      search: false,
+      timeoutMs: 25_000,
+      maxTokens: 400,
     });
 
-    if (!res.ok) {
-      const text = await res.text();
-      console.error(`AI gateway error [${res.status}]: ${text.slice(0, 300)}`);
-      throw new Error("Detection unavailable");
-    }
-    const json = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-    const raw = json.choices?.[0]?.message?.content ?? "{}";
     let parsed: unknown;
     try {
-      parsed = JSON.parse(raw);
+      parsed = JSON.parse(text);
     } catch {
       throw new Error("Model did not return valid JSON");
     }
