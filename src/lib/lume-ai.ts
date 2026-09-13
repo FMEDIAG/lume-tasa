@@ -11,11 +11,7 @@ const PREVIEW_HOST_RE =
 export function isAllowedOrigin(origin: string | null, host: string | null): boolean {
   if (host) {
     const hostOnly = host.split(":")[0] ?? host;
-    if (
-      hostOnly === "localhost" ||
-      hostOnly === "127.0.0.1" ||
-      PREVIEW_HOST_RE.test(hostOnly)
-    ) {
+    if (hostOnly === "localhost" || hostOnly === "127.0.0.1" || PREVIEW_HOST_RE.test(hostOnly)) {
       if (!origin) return true;
     }
   }
@@ -127,32 +123,44 @@ export async function chatCompletion(opts: {
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
+    let xaiError: string | null = null;
+
     if (xaiKey) {
-      const searchModes: Array<"web_search" | "live_search" | "search_parameters" | "none"> = opts.search
-        ? ["web_search", "live_search", "search_parameters", "none"]
-        : ["none"];
+      const searchModes: Array<"web_search" | "live_search" | "search_parameters" | "none"> =
+        opts.search ? ["web_search", "live_search", "search_parameters", "none"] : ["none"];
 
       let lastErr = "";
       for (const mode of searchModes) {
-        const res = await fetch("https://api.x.ai/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${xaiKey}`,
-          },
-          body: JSON.stringify(xaiBody({ ...opts, search: mode !== "none", searchTool: mode })),
-          signal: controller.signal,
-        });
-        if (res.ok) return parseChatJson(res);
-        lastErr = await res.text();
-        console.error(`[lume-ai] xAI ${mode} [${res.status}]: ${lastErr.slice(0, 280)}`);
-        if (res.status === 401 || res.status === 403) break;
-        if (!opts.search) break;
-        if (![400, 410, 422, 404].includes(res.status)) break;
+        try {
+          const res = await fetch("https://api.x.ai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${xaiKey}`,
+            },
+            body: JSON.stringify(xaiBody({ ...opts, search: mode !== "none", searchTool: mode })),
+            signal: controller.signal,
+          });
+          if (res.ok) return await parseChatJson(res);
+          lastErr = await res.text();
+          console.error(`[lume-ai] xAI ${mode} [${res.status}]: ${lastErr.slice(0, 280)}`);
+          // 401/403 = clave inválida; 402/429 = sin crédito o límite alcanzado.
+          // En cualquiera de estos casos no tiene sentido seguir insistiendo con xAI:
+          // salimos del bucle y probamos el gateway de Lovable como alternativa real.
+          if ([401, 402, 403, 429].includes(res.status)) break;
+          if (!opts.search) break;
+          if (![400, 410, 422, 404].includes(res.status)) break;
+        } catch (fetchErr) {
+          lastErr = fetchErr instanceof Error ? fetchErr.message : String(fetchErr);
+          console.error(`[lume-ai] xAI ${mode} fetch failed: ${lastErr}`);
+          break;
+        }
       }
-      throw new Error(`xAI failed: ${lastErr.slice(0, 120)}`);
+      xaiError = `xAI failed: ${lastErr.slice(0, 120)}`;
     }
 
+    // Si xAI no está configurada, o falló (clave inválida, sin crédito, error de red...),
+    // caemos de verdad al gateway de Lovable en vez de fallar toda la tasación.
     if (lovableKey) {
       const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
@@ -170,12 +178,12 @@ export async function chatCompletion(opts: {
       if (!res.ok) {
         const text = await res.text();
         console.error(`[lume-ai] Lovable error [${res.status}]: ${text.slice(0, 400)}`);
-        throw new Error(`gateway ${res.status}`);
+        throw new Error(xaiError ? `${xaiError}; gateway ${res.status}` : `gateway ${res.status}`);
       }
       return parseChatJson(res);
     }
 
-    throw new Error("AI is not available in this environment");
+    throw new Error(xaiError ?? "AI is not available in this environment");
   } finally {
     clearTimeout(timeout);
   }
