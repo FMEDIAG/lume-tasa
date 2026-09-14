@@ -465,6 +465,11 @@ function Index() {
               )}
               {error && <p className="mt-3 text-center text-sm text-destructive">{error}</p>}
               <p className="mt-6 text-center text-[11px] text-muted-foreground/70">{t.poweredBy}</p>
+              <img
+                src="/fmediag-logo.png"
+                alt="FMEDIAG"
+                className="mx-auto mt-3 h-9 w-9 rounded-full ring-1 ring-primary/30"
+              />
               <p className="mt-2 text-center text-xs font-bold text-muted-foreground/80">
                 ©2026 FMEDIAG - Lume v1.0
               </p>
