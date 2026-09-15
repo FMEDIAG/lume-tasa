@@ -55,7 +55,11 @@ describe("coin floors — 8 escudos / onza", () => {
   });
 
   it("does not treat colonial gold as bullion", () => {
-    const id = coin({ title: "8 escudos onza 1795", denomination: "8 escudos", marketType: "unknown" });
+    const id = coin({
+      title: "8 escudos onza 1795",
+      denomination: "8 escudos",
+      marketType: "unknown",
+    });
     assert.equal(isModernBullion(id), false);
   });
 
@@ -132,5 +136,48 @@ describe("reproductions and low confidence", () => {
     assert.equal(collectorFloorEur(fake), null);
     const low = coin({ title: "8 escudos", denomination: "8 escudos", confidence: "low" });
     assert.equal(collectorFloorEur(low), null);
+  });
+});
+
+describe("plated / filled coins are never valued as solid metal", () => {
+  it("meltValue returns null even with a large total weight", () => {
+    const plated = coin({
+      title: "Moneda conmemorativa chapada en oro 1oz",
+      denomination: "1 oz",
+      estimatedFineWeightG: 31.1,
+      platedOrFilled: true,
+    });
+    assert.equal(meltValue(plated, spots), null);
+  });
+
+  it("does not apply the collector floor for a plated 8 escudos replica", () => {
+    const plated = coin({
+      title: "8 escudos réplica chapada",
+      denomination: "8 escudos",
+      platedOrFilled: true,
+    });
+    assert.equal(collectorFloorEur(plated), null);
+    assert.equal(numismaticMeltMultiplier(plated), 1);
+  });
+
+  it("does not lift a plated souvenir toward melt/collector value", () => {
+    const plated = coin({
+      title: "Medalla souvenir chapada en oro",
+      denomination: "",
+      estimatedFineWeightG: 30,
+      platedOrFilled: true,
+      marketType: "unknown",
+    });
+    const cheapQuote = {
+      priceEurMin: 5,
+      priceEurMax: 15,
+      priceUsdMin: 5,
+      priceUsdMax: 16,
+      notes: "souvenir plateado",
+    };
+    const guarded = applyCoinPriceGuards(cheapQuote, plated, spots);
+    // Sin el arreglo, esto se habría inflado a ~€1.100 (30 g de "oro" al spot).
+    assert.equal(guarded.priceEurMin, cheapQuote.priceEurMin);
+    assert.equal(guarded.priceEurMax, cheapQuote.priceEurMax);
   });
 });
