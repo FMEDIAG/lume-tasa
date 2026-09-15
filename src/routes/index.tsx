@@ -151,7 +151,7 @@ function Index() {
       .finally(() => setDetecting(false));
   }, [photos, lang, detect, category]);
 
-  const canValuate = photos.length >= 1 && !loading;
+  const canValuate = photos.length >= 1 && context.trim().length > 0 && !loading;
 
   async function onFiles(files: FileList | null) {
     if (!files) return;
@@ -442,7 +442,13 @@ function Index() {
                 onChange={(e) => setContext(e.target.value)}
                 placeholder={t.context}
                 rows={2}
-                className="mt-3 w-full resize-none rounded-xl border border-primary/20 bg-input px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-ring/40"
+                required
+                aria-required="true"
+                className={`mt-3 w-full resize-none rounded-xl border bg-input px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 ${
+                  context.trim().length > 0
+                    ? "border-primary/20 focus:border-primary/60"
+                    : "border-destructive/50 focus:border-destructive"
+                }`}
               />
 
               <button
@@ -462,6 +468,9 @@ function Index() {
               </button>
               {photos.length < 1 && (
                 <p className="mt-3 text-center text-xs text-muted-foreground">{t.minPhotos}</p>
+              )}
+              {photos.length >= 1 && context.trim().length === 0 && (
+                <p className="mt-3 text-center text-xs text-muted-foreground">{t.minContext}</p>
               )}
               {error && <p className="mt-3 text-center text-sm text-destructive">{error}</p>}
               <p className="mt-6 text-center text-[11px] text-muted-foreground/70">{t.poweredBy}</p>
