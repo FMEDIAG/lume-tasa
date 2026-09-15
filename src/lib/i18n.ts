@@ -14,6 +14,7 @@ export const translations = {
 
     photosCount: (n: number) => `${n} foto${n === 1 ? "" : "s"} añadida${n === 1 ? "" : "s"}`,
     minPhotos: "Añade al menos 1 foto para tasar",
+    minContext: "Añade contexto (marca, año, detalles...) para poder tasar",
     category: "Categoría",
     categories: {
       auto: "Detectar automáticamente",
@@ -53,7 +54,7 @@ export const translations = {
       fair: "Aceptable (MP)",
       poor: "Malo (HP/Dañado)",
     },
-    context: "Contexto opcional (marca, año, detalles...)",
+    context: "Contexto obligatorio (marca, año, detalles...)",
     valuate: "Tasar objeto",
     valuating: "Analizando y consultando fuentes...",
     result: "Resultado de la tasación",
@@ -134,6 +135,7 @@ export const translations = {
 
     photosCount: (n: number) => `${n} photo${n === 1 ? "" : "s"} added`,
     minPhotos: "Add at least 1 photo to appraise",
+    minContext: "Add context (brand, year, details...) to appraise",
     category: "Category",
     categories: {
       auto: "Auto-detect",
@@ -173,7 +175,7 @@ export const translations = {
       fair: "Fair (MP)",
       poor: "Poor (HP/Damaged)",
     },
-    context: "Optional context (brand, year, details...)",
+    context: "Required context (brand, year, details...)",
     valuate: "Appraise item",
     valuating: "Analyzing and querying sources...",
     result: "Appraisal result",
