@@ -1,11 +1,5 @@
 export type CoinMetal =
-  | "gold"
-  | "silver"
-  | "platinum"
-  | "copper"
-  | "bimetallic"
-  | "paper"
-  | "unknown";
+  "gold" | "silver" | "platinum" | "copper" | "bimetallic" | "paper" | "unknown";
 
 export type CoinCertifier = "NGC" | "PCGS" | "ANACS" | "ICG" | "none" | "unknown";
 
@@ -20,6 +14,9 @@ export type CoinId = {
   seriesName: string;
   metal: CoinMetal;
   estimatedFineWeightG?: number | null;
+  /** true si es oro/plata CHAPADO o de baño (no macizo): el peso total NO es
+   * metal fino, y no debe usarse para calcular valor de fundición. */
+  platedOrFilled?: boolean;
   certifier: CoinCertifier;
   grade?: string | null;
   certNumber?: string | null;
@@ -55,7 +52,9 @@ export function blobOf(id: CoinId): string {
 }
 
 export function isSlabbed(certifier: CoinCertifier): boolean {
-  return certifier === "NGC" || certifier === "PCGS" || certifier === "ANACS" || certifier === "ICG";
+  return (
+    certifier === "NGC" || certifier === "PCGS" || certifier === "ANACS" || certifier === "ICG"
+  );
 }
 
 export function gradeBand(grade: string | null | undefined): GradeBand {
@@ -107,8 +106,11 @@ export function typicalFineWeightG(id: CoinId): number | null {
   return null;
 }
 
-export function meltValue(id: CoinId, spots: MetalSpots | null): { eur: number; usd: number } | null {
-  if (!spots || id.isLikelyReproduction) return null;
+export function meltValue(
+  id: CoinId,
+  spots: MetalSpots | null,
+): { eur: number; usd: number } | null {
+  if (!spots || id.isLikelyReproduction || id.platedOrFilled) return null;
   const grams = typicalFineWeightG(id);
   if (grams == null || grams <= 0) return null;
   const oz = grams / TROY_OZ_G;
@@ -124,7 +126,13 @@ const COLLECTOR_FLOORS_EUR: FloorRule[] = [
   { re: /8\s*escudos|ocho escudos|\bonza\b|doubloon/, circ: 6500, xf: 9500, au: 12500, ms: 18000 },
   { re: /4\s*escudos|cuatro escudos/, circ: 2200, xf: 3500, au: 5000, ms: 8000 },
   { re: /2\s*escudos|dos escudos/, circ: 900, xf: 1400, au: 2200, ms: 3500 },
-  { re: /4\s*excelentes|doble excelente|reyes cat[oó]licos/, circ: 7000, xf: 11000, au: 15000, ms: 22000 },
+  {
+    re: /4\s*excelentes|doble excelente|reyes cat[oó]licos/,
+    circ: 7000,
+    xf: 11000,
+    au: 15000,
+    ms: 22000,
+  },
   { re: /100\s*pesetas/, circ: 3500, xf: 5500, au: 8000, ms: 14000 },
   { re: /25\s*pesetas/, circ: 800, xf: 1200, au: 1800, ms: 3000 },
   { re: /\bcob\b|macuquina/, circ: 1200, xf: 2500, au: 4500, ms: 8000 },
@@ -146,7 +154,7 @@ function pickFloor(rule: FloorRule, band: GradeBand): number {
  * melt-style quote. Returns null for bullion / reproductions / low confidence.
  */
 export function collectorFloorEur(id: CoinId): number | null {
-  if (id.isLikelyReproduction || id.confidence === "low") return null;
+  if (id.isLikelyReproduction || id.platedOrFilled || id.confidence === "low") return null;
   if (isModernBullion(id)) return null;
   const blob = blobOf(id);
   const band = gradeBand(id.grade);
@@ -163,7 +171,7 @@ export function collectorFloorEur(id: CoinId): number | null {
  * 8 escudos melt is ~€2.5k; 4–5× recovers the typical €10k miss.
  */
 export function numismaticMeltMultiplier(id: CoinId): number {
-  if (id.isLikelyReproduction || id.confidence === "low") return 1;
+  if (id.isLikelyReproduction || id.platedOrFilled || id.confidence === "low") return 1;
   if (isModernBullion(id)) return 1.02;
   const blob = blobOf(id);
   const band = gradeBand(id.grade);
@@ -190,12 +198,7 @@ export function roundMoney(n: number): number {
   return Math.round(n);
 }
 
-function liftMin(
-  result: MoneyRange,
-  eurMin: number,
-  usdMin: number,
-  note: string,
-): MoneyRange {
+function liftMin(result: MoneyRange, eurMin: number, usdMin: number, note: string): MoneyRange {
   let { priceEurMin, priceEurMax, priceUsdMin, priceUsdMax, notes } = result;
   let applied = false;
   if (eurMin > 0 && priceEurMin < eurMin) {
