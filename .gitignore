@@ -37,4 +37,4 @@ dist-ssr
 
 # Caché de frameworks y herramientas (ej. Vite, Nuxt, etc.)
 # .nuxt/cache # Ejemplo si se usa Nuxt y no está cubierto por .output
-# .vite/ # Ejemplo si se usa Vite y genera caché
+# .vite/ # Ejemplo si se usa Vite y genera cach
