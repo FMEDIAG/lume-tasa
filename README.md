@@ -28,7 +28,7 @@ La IA identifica el tipo de objeto y sus atributos relevantes.
 
 Se consultan bases públicas y comparables globales.
 
-Se genera una tasación estimada, con rango de valor y nivel de confianza
+Se genera una tasación estimada, con rango de valor y nivel de confianza.
 
 Se muestra un informe claro y exportable.
 
