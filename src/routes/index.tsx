@@ -483,7 +483,12 @@ function Index() {
               {photos.length >= 1 && context.trim().length === 0 && (
                 <p className="mt-3 text-center text-xs text-muted-foreground">{t.minContext}</p>
               )}
-              {error && <p className="mt-3 text-center text-sm text-destructive">{error}</p>}
+              {error && (
+                <div className="mt-3 text-center">
+                  <p className="text-sm text-destructive">{error}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{t.errorHint}</p>
+                </div>
+              )}
               <p className="mt-6 text-center text-[11px] text-muted-foreground/70">{t.poweredBy}</p>
               <img
                 src="/fmediag-logo.png"
