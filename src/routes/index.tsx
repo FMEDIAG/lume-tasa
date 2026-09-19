@@ -503,12 +503,12 @@ function Index() {
                 {[3, 5, 10].map((amount) => (
                   <a
                     key={amount}
-                    href={`https://paypal.me/FMEDIAG/${amount}EUR`}
+                    href={`https://paypal.me/FMEDIAG/${amount}${lang === "es" ? "EUR" : "USD"}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="glass-crystal flex items-center justify-center rounded-full px-4 py-2 text-xs font-semibold text-primary transition hover:bg-primary/15"
                   >
-                    {amount}€
+                    {lang === "es" ? `${amount}€` : `$${amount}`}
                   </a>
                 ))}
               </div>
