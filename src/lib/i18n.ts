@@ -244,7 +244,7 @@ export const translations = {
         "Save, compare and export your report whenever you like.",
       ],
       cta: "Start appraising",
-      footer: "© 2026 FMEDIAG · Lume v1.0",
+      footer: "©2026 FMEDIAG · Lume v1.0",
     },
   },
 } as const;
