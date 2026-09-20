@@ -121,7 +121,7 @@ export const translations = {
         "Guarda, compara y exporta tu informe cuando quieras.",
       ],
       cta: "Empezar a tasar",
-      footer: "© 2026 FMEDIAG · Lume v1.0",
+      footer: "©2026 FMEDIAG · Lume v1.0",
     },
   },
   en: {
