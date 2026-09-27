@@ -30,9 +30,9 @@ Se consultan bases públicas y comparables globales.
 
 Se genera una tasación estimada, con rango de valor y nivel de confianza.
 
-Se muestra un informe claro y exportable.
+Se muestra un informe claro exportable.
 
-Importante ser muy explícito en el contexto, así afinará la tasación o sino fallará.
+Importante: ser muy explícito en el contexto, así afinará la tasación o sino fallará.
 
 ¡Apoya el proyecto!
 
