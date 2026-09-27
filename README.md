@@ -32,4 +32,8 @@ Se genera una tasación estimada, con rango de valor y nivel de confianza.
 
 Se muestra un informe claro y exportable.
 
+Importante ser muy explícito en el contexto, así afinará la tasación o sino fallará.
+
+¡Apoya el proyecto!
+
 ©2026 FMEDIAG - Lume v1.0
