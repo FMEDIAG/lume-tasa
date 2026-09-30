@@ -32,7 +32,7 @@ Se genera una tasación estimada, con rango de valor y nivel de confianza.
 
 Se muestra un informe claro exportable.
 
-Importante: contexto obligatorio, conciso pero detallado, así afinará la tasación o sino fallará.
+Si usas el contexto, mejor conciso pero detallado, así afinará la tasación.
 
 ¡Apoya el proyecto! [Donar con PayPal](apoyar.html)
 
