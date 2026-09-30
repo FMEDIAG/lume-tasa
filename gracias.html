@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lume — Gracias</title>
+    <style>
+      body { margin: 0; font-family: Georgia, "Times New Roman", serif; background: #12162b; color: #f4efe4; }
+      main { max-width: 32rem; margin: 0 auto; padding: 2.5rem 1.25rem 3rem; }
+      h1 { font-size: 1.7rem; }
+      p { line-height: 1.5; color: #c9c3b6; }
+      a.btn {
+        display: flex; justify-content: center; margin-top: 1.2rem; padding: 0.85rem 1.1rem;
+        border-radius: 999px; background: #c4a15a; color: #1a1408; font-weight: 700; text-decoration: none;
+      }
+      a { color: #e7d7ae; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Gracias por tu apoyo</h1>
+      <p id="body">Gracias por apoyar Lume.</p>
+      <a id="again" class="btn" hidden target="_blank" rel="noopener noreferrer">Abrir PayPal de nuevo</a>
+      <p><a href="apoyar.html">Apoya el proyecto</a></p>
+      <p><a href="./">Volver</a></p>
+    </main>
+    <script>
+      const raw = sessionStorage.getItem("lume:donation");
+      const data = raw ? JSON.parse(raw) : null;
+      if (data && data.username && data.amount) {
+        const amount = Number.isInteger(data.amount) ? String(data.amount) : Number(data.amount).toFixed(2);
+        document.getElementById("body").textContent =
+          data.username + ", gracias por apoyar Lume con " + amount + "€. Si PayPal no se abrió, completa el pago con el botón de abajo.";
+        const again = document.getElementById("again");
+        again.hidden = false;
+        again.href = "https://www.paypal.com/paypalme/FMEDIAG/" + amount + "EUR";
+      } else {
+        document.getElementById("body").textContent = "No hay una donación en curso. Puedes empezar desde la página de apoyo.";
+      }
+    </script>
+  </body>
+</html>

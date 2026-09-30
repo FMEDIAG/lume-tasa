@@ -34,6 +34,6 @@ Se muestra un informe claro exportable.
 
 Importante: contexto obligatorio, conciso pero detallado, así afinará la tasación o sino fallará.
 
-¡Apoya el proyecto!
+¡Apoya el proyecto! [Donar con PayPal](apoyar.html)
 
 ©2026 FMEDIAG - Lume v1.0
