@@ -284,6 +284,7 @@ function Thanks({ t }: { t: DonateT }) {
           <p className="text-sm text-foreground/80">{t.donation.thanksMissing}</p>
           <Link
             to="/apoyar"
+            search={{}}
             className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-gradient-crystal px-5 py-3 text-sm font-semibold text-primary-foreground"
           >
             <Heart className="h-4 w-4" /> {t.donate}
