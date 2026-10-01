@@ -36,4 +36,4 @@ Si usas el contexto, mejor conciso pero detallado, así afinará la tasación.
 
 ¡Apoya el proyecto! [Donar con PayPal](apoyar.html)
 
-©2026 FMEDIAG - Lume v1.0
+©2026 FMEDIAG - Lume v1.0.
