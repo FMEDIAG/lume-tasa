@@ -4,16 +4,40 @@ export const PAYPAL_PLAY_STORE =
 
 export const DONATION_KEY = "lume:donation";
 
+// URL for PayPal webhook (configured in PayPal Developer Dashboard)
+export const PAYPAL_WEBHOOK_URL =
+  typeof window !== "undefined"
+    ? `${window.location.origin}/_server/handlePayPalWebhook`
+    : "/_server/handlePayPalWebhook";
+
 export type DonationDraft = {
   username: string;
   email: string;
   amount: number;
   currency: "EUR" | "USD";
+  // Custom ID to match webhook callback to this donation session
+  customId?: string;
+};
+
+export type ConfirmedDonation = {
+  id: string;
+  amount: number;
+  currency: string;
+  payerEmail: string;
+  payeeEmail: string;
+  status: string;
+  createTime: string;
+  customData?: string;
 };
 
 export function paypalMeUrl(amount: number, currency: "EUR" | "USD"): string {
   const value = Number.isInteger(amount) ? String(amount) : amount.toFixed(2);
   return `https://www.paypal.com/paypalme/${PAYPAL_HANDLE}/${value}${currency}`;
+}
+
+// Generate a unique custom ID for tracking
+export function generateCustomId(): string {
+  return `lume_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
 }
 
 export function saveDonation(draft: DonationDraft) {
@@ -30,4 +54,9 @@ export function readDonation(): DonationDraft | null {
   } catch {
     return null;
   }
+}
+
+// Clear donation from session storage
+export function clearDonation() {
+  sessionStorage.removeItem(DONATION_KEY);
 }

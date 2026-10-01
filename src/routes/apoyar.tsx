@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Heart } from "lucide-react";
+import { Heart, ArrowLeft, Loader2, AlertCircle } from "lucide-react";
 import { translations, type Lang } from "@/lib/i18n";
-import { paypalMeUrl, PAYPAL_PLAY_STORE, saveDonation } from "@/lib/donation";
+import { PAYPAL_PLAY_STORE, saveDonation, generateCustomId, type DonationDraft } from "@/lib/donation";
+import { PayPalButton, PayPalFallbackLink } from "@/components/PayPalButton";
 
 export const Route = createFileRoute("/apoyar")({
   head: () => ({
@@ -43,6 +44,9 @@ function Apoyar() {
   const [error, setError] = useState<string | null>(null);
   const [preset, setPreset] = useState<number | "custom">(5);
   const [custom, setCustom] = useState("");
+  const [draft, setDraft] = useState<DonationDraft | null>(null);
+  const [paypalError, setPaypalError] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
 
   function connect(e: React.FormEvent) {
     e.preventDefault();
@@ -67,13 +71,31 @@ function Apoyar() {
     return Math.round(n * 100) / 100;
   }
 
-  function pay() {
+  function prepareDonation() {
     const amount = amountValue();
     if (!amount) return;
-    const draft = { username: username.trim(), email: email.trim(), amount, currency } as const;
-    saveDonation(draft);
-    window.open(paypalMeUrl(amount, currency), "_blank", "noopener,noreferrer");
-    navigate({ to: "/gracias" });
+    const customId = generateCustomId();
+    const newDraft: DonationDraft = {
+      username: username.trim(),
+      email: email.trim(),
+      amount,
+      currency,
+      customId,
+    };
+    setDraft(newDraft);
+    saveDonation(newDraft);
+    setPaypalError(null);
+  }
+
+  function handlePayPalSuccess(orderId: string) {
+    setProcessing(true);
+    // Navigate to gracias page, orderId will be available for verification
+    navigate({ to: "/gracias", search: { orderId } });
+  }
+
+  function handlePayPalError(err: string) {
+    setPaypalError(err);
+    setProcessing(false);
   }
 
   const symbol = currency === "EUR" ? "€" : "$";
@@ -147,7 +169,7 @@ function Apoyar() {
           </form>
         )}
 
-        {connected && (
+        {connected && !draft && (
           <section className="mt-6">
             <p className="text-sm text-foreground">
               {username.trim()} · {email.trim()}
@@ -195,10 +217,56 @@ function Apoyar() {
             <button
               type="button"
               disabled={!ready}
-              onClick={pay}
+              onClick={prepareDonation}
               className="mt-5 flex w-full items-center justify-center rounded-2xl bg-gradient-crystal px-6 py-4 text-base font-semibold text-primary-foreground shadow-glow disabled:opacity-50"
             >
               {t.pay}
+            </button>
+          </section>
+        )}
+
+        {draft && (
+          <section className="mt-6 space-y-4">
+            <div className="glass-crystal rounded-2xl p-4">
+              <p className="text-sm text-foreground">
+                {draft.username} · {draft.email}
+              </p>
+              <p className="mt-2 text-lg font-semibold text-gradient-gold">
+                {symbol}{draft.amount.toFixed(2)}
+              </p>
+              <p className="mt-2 text-xs text-muted-foreground">{t.balanceNote}</p>
+            </div>
+
+            <PayPalButton
+              draft={draft}
+              onSuccess={handlePayPalSuccess}
+              onError={handlePayPalError}
+            />
+
+            {paypalError && (
+              <div className="glass-crystal rounded-xl border border-destructive/30 bg-destructive/10 p-4">
+                <div className="flex items-center gap-2 text-sm text-destructive">
+                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                  <span>{paypalError}</span>
+                </div>
+                <div className="mt-3">
+                  <PayPalFallbackLink draft={draft} />
+                </div>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                setDraft(null);
+                setPreset(5);
+                setCustom("");
+                setPaypalError(null);
+              }}
+              className="flex w-full items-center justify-center gap-2 text-sm font-semibold text-primary hover:underline"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Cambiar importe
             </button>
           </section>
         )}

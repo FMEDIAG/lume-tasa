@@ -13,6 +13,8 @@ import {
   Globe,
   Focus,
   Heart,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { CameraCapture } from "@/components/CameraCapture";
 import { IntroScreen, INTRO_SEEN_KEY } from "@/components/IntroScreen";
@@ -162,7 +164,7 @@ function Index() {
       .finally(() => setDetecting(false));
   }, [photos, lang, detect, category]);
 
-  const canValuate = photos.length >= 1 && context.trim().length > 0 && !loading;
+  const canValuate = photos.length >= 1 && !loading;
 
   async function onFiles(files: FileList | null) {
     if (!files) return;
@@ -453,13 +455,7 @@ function Index() {
                 onChange={(e) => setContext(e.target.value)}
                 placeholder={t.context}
                 rows={2}
-                required
-                aria-required="true"
-                className={`mt-3 w-full resize-none rounded-xl border bg-input px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 ${
-                  context.trim().length > 0
-                    ? "border-primary/20 focus:border-primary/60"
-                    : "border-destructive/50 focus:border-destructive"
-                }`}
+                className="mt-3 w-full resize-none rounded-xl border border-primary/20 bg-input px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-ring/40"
               />
 
               <button
@@ -481,7 +477,7 @@ function Index() {
                 <p className="mt-3 text-center text-xs text-muted-foreground">{t.minPhotos}</p>
               )}
               {photos.length >= 1 && context.trim().length === 0 && (
-                <p className="mt-3 text-center text-xs text-muted-foreground">{t.minContext}</p>
+                <p className="mt-3 text-center text-xs text-muted-foreground">{t.contextOptional}</p>
               )}
               {error && (
                 <div className="mt-3 text-center">
@@ -567,6 +563,7 @@ function ResultCard({
   onReset: () => void;
   onHistory: () => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const confColor = useMemo(() => {
     if (result.confidence === "high") return "text-primary";
     if (result.confidence === "medium") return "text-accent";
@@ -582,7 +579,7 @@ function ResultCard({
             alt=""
             className="h-20 w-20 shrink-0 rounded-xl object-cover ring-1 ring-primary/40"
           />
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-xs uppercase tracking-widest text-muted-foreground">{t.result}</p>
             <h2 className="mt-1 text-xl font-semibold text-gradient-gold">{result.title}</h2>
             <p className={`mt-1 text-xs font-medium uppercase ${confColor}`}>
@@ -591,6 +588,13 @@ function ResultCard({
                 result.confidence}
             </p>
           </div>
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-crystal text-primary-foreground shadow-glow transition hover:scale-105"
+            aria-label={expanded ? "Colapsar" : "Expandir"}
+          >
+            {expanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+          </button>
         </div>
 
         <div className="mt-5 grid grid-cols-2 gap-3">
@@ -598,46 +602,50 @@ function ResultCard({
           <PriceCard label="USD" symbol="$" min={result.priceUsdMin} max={result.priceUsdMax} />
         </div>
 
-        <div className="mt-5">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground">
-            {t.identification}
-          </p>
-          <p className="mt-1 text-sm leading-relaxed text-foreground/90">{result.identification}</p>
-        </div>
+        {expanded && (
+          <>
+            <div className="mt-5">
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                {t.identification}
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-foreground/90">{result.identification}</p>
+            </div>
 
-        {result.notes && (
-          <div className="mt-4">
-            <p className="text-xs uppercase tracking-wider text-muted-foreground">{t.notes}</p>
-            {extractPricePerSqm(result.notes).length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {extractPricePerSqm(result.notes).map((p) => (
-                  <span
-                    key={p}
-                    className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold tabular-nums leading-tight text-primary"
-                  >
-                    {p}
-                  </span>
-                ))}
+            {result.notes && (
+              <div className="mt-4">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground">{t.notes}</p>
+                {extractPricePerSqm(result.notes).length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {extractPricePerSqm(result.notes).map((p) => (
+                      <span
+                        key={p}
+                        className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold tabular-nums leading-tight text-primary"
+                      >
+                        {p}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <p className="mt-1 text-sm leading-relaxed text-foreground/80">{result.notes}</p>
               </div>
             )}
-            <p className="mt-1 text-sm leading-relaxed text-foreground/80">{result.notes}</p>
-          </div>
-        )}
 
-        {result.sources && result.sources.length > 0 && (
-          <div className="mt-4">
-            <p className="text-xs uppercase tracking-wider text-muted-foreground">{t.sources}</p>
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {result.sources.map((s, i) => (
-                <span
-                  key={i}
-                  className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] text-primary"
-                >
-                  {s}
-                </span>
-              ))}
-            </div>
-          </div>
+            {result.sources && result.sources.length > 0 && (
+              <div className="mt-4">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground">{t.sources}</p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {result.sources.map((s, i) => (
+                    <span
+                      key={i}
+                      className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] text-primary"
+                    >
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 

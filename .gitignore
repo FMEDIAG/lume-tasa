@@ -20,6 +20,9 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Base de datos local (SQLite para desarrollo)
+.data/
+
 # Archivos y directorios específicos del editor y del IDE
 .vscode/*
 !.vscode/extensions.json # Mantener la configuración de extensiones de VS Code

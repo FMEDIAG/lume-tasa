@@ -1,0 +1,17 @@
+name = "fmediag-lume-tasa"
+main = ".output/server/index.mjs"
+compatibility_date = "2026-09-30"
+
+# D1 Database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "lume-donations"
+database_id = "your-d1-database-id"
+
+# Environment variables
+[vars]
+PAYPAL_WEBHOOK_ID = "wh_xxxxxxxxxxxxxxxxxxxx"
+
+# Build configuration
+[build]
+command = "npm run build"
