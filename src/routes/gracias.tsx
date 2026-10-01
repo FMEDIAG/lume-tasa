@@ -61,7 +61,7 @@ function Gracias() {
     setDraft(donation);
     if (donation?.customId) {
       setChecking(true);
-      checkStatus({ customId: donation.customId })
+      checkStatus({ data: { customId: donation.customId } })
         .then((result) => {
           if (result) setConfirmed(result);
         })

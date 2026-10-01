@@ -1,16 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
-import { setResponseStatus } from "@tanstack/react-start/server";
 import { z } from "zod";
 import crypto from "node:crypto";
-import {
-  saveConfirmedDonation,
-  findDonationByCustomId,
-  rowToDonation,
-  type ConfirmedDonation,
-} from "@/lib/donation-store";
+import { findDonationByCustomId, rowToDonation } from "@/lib/donation-store";
 
 // PayPal Webhook Event Types we care about
-const RELEVANT_EVENTS = [
+export const RELEVANT_EVENTS = [
   "PAYMENT.SALE.COMPLETED",
   "PAYMENT.SALE.DENIED",
   "PAYMENT.SALE.REFUNDED",
@@ -19,7 +13,7 @@ const RELEVANT_EVENTS = [
 ] as const;
 
 // Input schema for webhook payload (minimal validation)
-const WebhookPayloadSchema = z.object({
+export const WebhookPayloadSchema = z.object({
   id: z.string(),
   event_type: z.string(),
   create_time: z.string(),
@@ -50,11 +44,11 @@ const WebhookPayloadSchema = z.object({
   }),
 });
 
-type WebhookPayload = z.infer<typeof WebhookPayloadSchema>;
+export type WebhookPayload = z.infer<typeof WebhookPayloadSchema>;
 
 // Verify PayPal webhook signature
 // See: https://developer.paypal.com/api/rest/webhooks/webhook-event-verify/
-async function verifyWebhookSignature(
+export async function verifyWebhookSignature(
   request: Request,
   payload: string,
   webhookId: string
@@ -100,63 +94,21 @@ async function verifyWebhookSignature(
   }
 }
 
+const DonationStatusSchema = z.object({ customId: z.string() });
+
 // Server function to check donation status from frontend
 export const checkDonationStatus = createServerFn({ method: "POST" })
-  .validator((data: unknown) => z.object({ customId: z.string() }).parse(data))
+  .validator((data: unknown): z.infer<typeof DonationStatusSchema> =>
+    DonationStatusSchema.parse(data),
+  )
   .handler(async ({ data }) => {
     const row = findDonationByCustomId(data.customId);
     if (!row) return null;
     return rowToDonation(row);
   });
 
-// PayPal Webhook handler - using a raw server function
-export const handlePayPalWebhook = createServerFn({ method: "POST" })
-  .validator((data: unknown) => WebhookPayloadSchema.parse(data))
-  .handler(async ({ data, request }) => {
-    const webhookId = process.env.PAYPAL_WEBHOOK_ID;
-    if (!webhookId) {
-      console.error("[paypal-webhook] PAYPAL_WEBHOOK_ID not configured");
-      setResponseStatus(500);
-      throw new Error("Webhook not configured");
-    }
-
-    // Get raw body for signature verification
-    const rawBody = await request.text();
-
-    // Verify signature
-    const isValid = await verifyWebhookSignature(request, rawBody, webhookId);
-    if (!isValid) {
-      console.warn("[paypal-webhook] Invalid signature");
-      setResponseStatus(401);
-      throw new Error("Invalid signature");
-    }
-
-    // Check if it's an event we care about
-    if (!RELEVANT_EVENTS.includes(data.event_type as any)) {
-      console.log("[paypal-webhook] Ignoring event:", data.event_type);
-      return { received: true, ignored: true };
-    }
-
-    console.log("[paypal-webhook] Processing event:", data.event_type, data.id);
-
-    const resource = data.resource;
-    const amount = resource.amount ? parseFloat(resource.amount.total) : 0;
-    const currency = resource.amount?.currency || "EUR";
-
-    // Extract custom ID from PayPal resource (custom field or invoice_number)
-    const customId = resource.custom || resource.invoice_number;
-
-    // Save the confirmed donation to database
-    saveConfirmedDonation({
-      id: data.id,
-      amount,
-      currency,
-      payerEmail: resource.payer?.email || "unknown",
-      payeeEmail: resource.payee?.email || "unknown",
-      status: resource.state || data.event_type,
-      createTime: data.create_time,
-      customData: customId,
-    });
-
-    return { received: true, processed: true };
-  });
+// Note: the PayPal webhook itself is handled by the worker entry in
+// `src/server.ts` (route `/paypal-webhook`), which runs before the TanStack
+// Start router so it can read the raw request body needed for signature
+// verification. This file only exposes the verification helper and the
+// frontend-facing status lookup.

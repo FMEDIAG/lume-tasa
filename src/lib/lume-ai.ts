@@ -1,8 +1,9 @@
 import { getRequest } from "@tanstack/react-start/server";
+import { cfSecret } from "./cf-env";
 
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS ?? "")
+const ALLOWED_ORIGINS: string[] = String(process.env.ALLOWED_ORIGINS ?? "")
   .split(",")
-  .map((o) => o.trim())
+  .map((o: string) => o.trim())
   .filter(Boolean);
 
 const PREVIEW_HOST_RE =
@@ -116,8 +117,8 @@ export async function chatCompletion(opts: {
   maxTokens?: number;
 }): Promise<ChatResult> {
   const timeoutMs = opts.timeoutMs ?? 45_000;
-  const xaiKey = process.env.XAI_API_KEY;
-  const lovableKey = process.env.LOVABLE_API_KEY;
+  const xaiKey = cfSecret("XAI_API_KEY") ?? cfSecret("LOVABLE_API_KEY");
+  const lovableKey = cfSecret("LOVABLE_API_KEY");
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);

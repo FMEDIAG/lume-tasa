@@ -10,6 +10,7 @@ import {
   roundMoney,
   type MetalSpots,
 } from "@/lib/lume-ai";
+import { cfSecret } from "@/lib/cf-env";
 import {
   applyCoinPriceGuards,
   coinIdFromText,
@@ -409,7 +410,8 @@ function applyBulkFloor(parsed: unknown): unknown {
 export const valuateItem = createServerFn({ method: "POST" })
   .validator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data }) => {
-    if (!process.env.XAI_API_KEY && !process.env.LOVABLE_API_KEY) {
+    const apiKey = cfSecret("XAI_API_KEY") ?? cfSecret("LOVABLE_API_KEY");
+    if (!apiKey) {
       console.error("[valuateItem] Missing XAI_API_KEY and LOVABLE_API_KEY");
       setResponseStatus(500);
       throw new Error("Valuation service misconfigured");

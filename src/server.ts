@@ -4,6 +4,7 @@ import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { saveConfirmedDonation } from "./lib/donation-store";
 import { initD1 } from "./lib/donation-db";
+import { resolveCloudflareEnv, cfSecret } from "./lib/cf-env";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -68,7 +69,7 @@ async function handleWebhookRoute(request: Request): Promise<Response | null> {
     }
     try {
       const rawBody = await request.text();
-      const webhookId = process.env.PAYPAL_WEBHOOK_ID;
+      const webhookId = cfSecret("PAYPAL_WEBHOOK_ID", request);
       if (!webhookId) {
         return new Response(JSON.stringify({ error: "Webhook not configured" }), {
           status: 500,
@@ -126,20 +127,62 @@ async function handleWebhookRoute(request: Request): Promise<Response | null> {
   return null;
 }
 
+/**
+ * Lightweight diagnostics endpoint: reports whether the expected bindings and
+ * secrets are present (never their values).
+ */
+function handleHealthRoute(request: Request, env: Record<string, unknown> | undefined): Response | null {
+  const url = new URL(request.url);
+  if (url.pathname !== "/api/health") return null;
+
+  const describe = (name: string) => {
+    const value = env?.[name];
+    return {
+      name,
+      present: value !== undefined && value !== null && value !== "",
+      type: typeof value,
+    };
+  };
+
+  return new Response(
+    JSON.stringify(
+      {
+        ok: true,
+        envResolved: !!env,
+        bindingNames: env ? Object.keys(env).sort() : [],
+        d1: !!env?.DB,
+        secrets: ["XAI_API_KEY", "LOVABLE_API_KEY", "PAYPAL_WEBHOOK_ID", "VITE_PAYPAL_CLIENT_ID"].map(describe),
+      },
+      null,
+      2,
+    ),
+    { status: 200, headers: { "content-type": "application/json" } },
+  );
+}
+
 export default {
-  async fetch(request: Request, env: unknown, ctx: unknown) {
+  async fetch(request: Request, envArg: unknown, ctx: unknown) {
+    // On Workers the real bindings live on `globalThis.__env__` (set by Nitro)
+    // or `request.runtime.cloudflare.env`; the `env` argument is undefined here
+    // because TanStack Start forwards only the Request to this entry.
+    const env = resolveCloudflareEnv(request) ?? (envArg as Record<string, unknown> | undefined);
+
     // Initialize D1 database if available (Cloudflare Workers)
-    if (env && typeof env === "object" && "DB" in env) {
-      initD1((env as any).DB);
+    if (env?.DB) {
+      initD1(env.DB as never);
     }
 
-    // Check for webhook route first
+    // Diagnostics
+    const healthResponse = handleHealthRoute(request, env);
+    if (healthResponse) return healthResponse;
+
+    // Check for webhook route
     const webhookResponse = await handleWebhookRoute(request);
     if (webhookResponse) return webhookResponse;
 
     try {
       const handler = await getServerEntry();
-      const response = await handler.fetch(request, env, ctx);
+      const response = await handler.fetch(request, envArg, ctx);
       return await normalizeCatastrophicSsrResponse(response);
     } catch (error) {
       console.error(error);

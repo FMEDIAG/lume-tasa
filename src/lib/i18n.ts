@@ -15,6 +15,7 @@ export const translations = {
     photosCount: (n: number) => `${n} foto${n === 1 ? "" : "s"} añadida${n === 1 ? "" : "s"}`,
     minPhotos: "Añade al menos 1 foto para tasar",
     minContext: "Añade contexto (marca, año, detalles...) para poder tasar",
+    contextOptional: "El contexto es opcional. Añade marca, año, detalles... para mejores resultados",
     category: "Categoría",
     categories: {
       auto: "Detectar automáticamente",

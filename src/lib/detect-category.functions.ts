@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { setResponseStatus } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { chatCompletion, clientIp, isAllowedOrigin, requestOriginHost } from "@/lib/lume-ai";
+import { cfSecret } from "@/lib/cf-env";
 
 const MAX_PHOTO_CHARS = 1_500_000;
 
@@ -68,7 +69,9 @@ function allowed(ip: string): boolean {
 export const detectCategory = createServerFn({ method: "POST" })
   .validator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data }) => {
-    if (!process.env.XAI_API_KEY && !process.env.LOVABLE_API_KEY) {
+    // Get AI key: process.env locally, Cloudflare Workers binding in production
+    const apiKey = cfSecret("XAI_API_KEY") ?? cfSecret("LOVABLE_API_KEY");
+    if (!apiKey) {
       throw new Error("AI is not available in this environment");
     }
 

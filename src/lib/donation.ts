@@ -4,11 +4,13 @@ export const PAYPAL_PLAY_STORE =
 
 export const DONATION_KEY = "lume:donation";
 
-// URL for PayPal webhook (configured in PayPal Developer Dashboard)
+// URL for PayPal webhook (configured in PayPal Developer Dashboard).
+// Handled by the worker entry in `src/server.ts` *before* the TanStack Start
+// router, so this path is served on both Workers and local dev.
 export const PAYPAL_WEBHOOK_URL =
   typeof window !== "undefined"
-    ? `${window.location.origin}/_server/handlePayPalWebhook`
-    : "/_server/handlePayPalWebhook";
+    ? `${window.location.origin}/paypal-webhook`
+    : "/paypal-webhook";
 
 export type DonationDraft = {
   username: string;
