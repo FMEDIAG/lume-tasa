@@ -9,21 +9,12 @@
       body { margin: 0; font-family: Georgia, "Times New Roman", serif; background: #12162b; color: #f4efe4; }
       main { max-width: 32rem; margin: 0 auto; padding: 2.5rem 1.25rem 3rem; }
       h1 { font-size: 1.7rem; margin: 0 0 0.75rem; }
-      p, label { line-height: 1.5; }
-      label { display: block; margin-top: 0.9rem; font-size: 0.85rem; }
-      input[type="text"], input[type="email"], input[type="number"] {
-        width: 100%; box-sizing: border-box; margin-top: 0.35rem; padding: 0.75rem 0.9rem;
-        border-radius: 0.8rem; border: 1px solid #8d7344; background: #1c223d; color: inherit; font: inherit;
-      }
-      button, .btn {
+      p { line-height: 1.5; }
+      .btn {
         display: inline-flex; justify-content: center; margin-top: 1rem; padding: 0.85rem 1.1rem;
         border: 0; border-radius: 999px; background: #c4a15a; color: #1a1408; font: inherit; font-weight: 700;
-        text-decoration: none; cursor: pointer;
+        text-decoration: none;
       }
-      button[disabled] { opacity: 0.5; }
-      .row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.6rem; }
-      .ghost { background: transparent; color: #e7d7ae; border: 1px solid #8d7344; }
-      .error { color: #ffb4b4; }
       .muted { color: #c9c3b6; }
       a { color: #e7d7ae; }
     </style>
@@ -31,90 +22,11 @@
   <body>
     <main>
       <h1>Apoya Lume con PayPal</h1>
-      <p class="muted">Indica el usuario y el correo de tu cuenta PayPal. Después eliges el importe. PayPal muestra tu saldo al confirmar el pago. Lume no pide ni guarda la contraseña.</p>
-      <form id="connect">
-        <label>Usuario de PayPal
-          <input id="username" type="text" autocomplete="username" required />
-        </label>
-        <label>Correo electrónico
-          <input id="email" type="email" autocomplete="email" required />
-        </label>
-        <label><input id="noAccount" type="checkbox" /> No tengo cuenta de PayPal</label>
-        <p id="play" hidden class="muted">Crea una cuenta con la app oficial y vuelve para apoyar el proyecto.<br />
-          <a class="btn" href="https://play.google.com/store/apps/details?id=com.paypal.android.p2pmobile" target="_blank" rel="noopener noreferrer">Descargar PayPal en Play Store</a>
-        </p>
-        <p id="error" class="error" hidden></p>
-        <button id="next" type="submit">Continuar</button>
-      </form>
-      <section id="amount" hidden>
-        <p id="who"></p>
-        <p class="muted">PayPal muestra tu saldo real en su página al confirmar.</p>
-        <p>Importe del apoyo</p>
-        <div class="row" id="presets"></div>
-        <label id="customWrap" hidden>Otro importe
-          <input id="custom" type="number" min="1" max="10000" step="0.01" />
-        </label>
-        <button id="pay" type="button">Donar con PayPal</button>
-      </section>
+      <p class="muted">Continúa en PayPal para apoyar Lume. Tus credenciales y datos de pago se quedan en PayPal.</p>
+      <a class="btn" href="https://www.paypal.com/paypalme/FMEDIAG" target="_blank" rel="noopener noreferrer">
+        Donar con PayPal
+      </a>
       <p><a href="./">Volver</a></p>
     </main>
-    <script>
-      const presets = [3, 5, 10];
-      let chosen = 5;
-      const noAccount = document.getElementById("noAccount");
-      const play = document.getElementById("play");
-      const next = document.getElementById("next");
-      const error = document.getElementById("error");
-      noAccount.addEventListener("change", () => {
-        play.hidden = !noAccount.checked;
-        next.hidden = noAccount.checked;
-        error.hidden = true;
-      });
-      document.getElementById("connect").addEventListener("submit", (e) => {
-        e.preventDefault();
-        if (noAccount.checked) return;
-        const username = document.getElementById("username").value.trim();
-        const email = document.getElementById("email").value.trim();
-        if (username.length < 2 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          error.hidden = false;
-          error.textContent = "Revisa el usuario y el correo.";
-          return;
-        }
-        sessionStorage.setItem("lume:donation-id", JSON.stringify({ username, email }));
-        document.getElementById("connect").hidden = true;
-        document.getElementById("amount").hidden = false;
-        document.getElementById("who").textContent = username + " · " + email;
-      });
-      const box = document.getElementById("presets");
-      function paint() {
-        box.innerHTML = "";
-        presets.forEach((n) => {
-          const b = document.createElement("button");
-          b.type = "button";
-          b.className = n === chosen ? "" : "ghost";
-          b.textContent = n + "€";
-          b.onclick = () => { chosen = n; document.getElementById("customWrap").hidden = true; paint(); };
-          box.appendChild(b);
-        });
-        const other = document.createElement("button");
-        other.type = "button";
-        other.className = chosen === "custom" ? "" : "ghost";
-        other.textContent = "Otro importe";
-        other.onclick = () => { chosen = "custom"; document.getElementById("customWrap").hidden = false; paint(); };
-        box.appendChild(other);
-      }
-      paint();
-      document.getElementById("pay").onclick = () => {
-        const id = JSON.parse(sessionStorage.getItem("lume:donation-id") || "{}");
-        let amount = chosen;
-        if (chosen === "custom") amount = Number(document.getElementById("custom").value);
-        if (!Number.isFinite(amount) || amount < 1 || amount > 10000) return;
-        const value = Number.isInteger(amount) ? String(amount) : amount.toFixed(2);
-        const draft = { username: id.username, email: id.email, amount: Number(value), currency: "EUR" };
-        sessionStorage.setItem("lume:donation", JSON.stringify(draft));
-        window.open("https://www.paypal.com/paypalme/FMEDIAG/" + value + "EUR", "_blank", "noopener,noreferrer");
-        location.href = "gracias.html";
-      };
-    </script>
   </body>
 </html>
