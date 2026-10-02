@@ -128,6 +128,78 @@ async function handleWebhookRoute(request: Request): Promise<Response | null> {
 }
 
 /**
+ * AI connectivity probe: makes one minimal, real request against the
+ * configured provider so we can see the upstream status code and body
+ * (a bad key, no credit, wrong model...). Never echoes the key itself.
+ */
+async function handleAiProbeRoute(request: Request): Promise<Response | null> {
+  const url = new URL(request.url);
+  if (url.pathname !== "/api/ai-probe") return null;
+
+  const which = url.searchParams.get("provider") ?? "auto";
+  const xaiKey = cfSecret("XAI_API_KEY", request);
+  const lovableKey = cfSecret("LOVABLE_API_KEY", request);
+
+  const probe = async (
+    label: string,
+    endpoint: string,
+    headers: Record<string, string>,
+    body: Record<string, unknown>,
+  ) => {
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...headers },
+        body: JSON.stringify(body),
+      });
+      const text = await res.text();
+      return { label, endpoint, status: res.status, ok: res.ok, body: text.slice(0, 500) };
+    } catch (err) {
+      return {
+        label,
+        endpoint,
+        status: 0,
+        ok: false,
+        body: err instanceof Error ? `${err.name}: ${err.message}` : String(err),
+      };
+    }
+  };
+
+  const results = [];
+  if ((which === "auto" || which === "xai") && xaiKey) {
+    results.push(
+      await probe("xai", "https://api.x.ai/v1/chat/completions", { Authorization: `Bearer ${xaiKey}` }, {
+        model: "grok-4.5",
+        messages: [{ role: "user", content: "ping" }],
+        max_tokens: 5,
+      }),
+    );
+  }
+  if ((which === "auto" || which === "lovable") && lovableKey) {
+    results.push(
+      await probe("lovable", "https://ai.gateway.lovable.dev/v1/chat/completions", { "Lovable-API-Key": lovableKey }, {
+        model: "google/gemini-3.6-flash",
+        messages: [{ role: "user", content: "ping" }],
+        max_tokens: 5,
+      }),
+    );
+  }
+
+  return new Response(
+    JSON.stringify(
+      {
+        probed: results.map((r) => r.label),
+        configured: { XAI_API_KEY: !!xaiKey, LOVABLE_API_KEY: !!lovableKey },
+        results,
+      },
+      null,
+      2,
+    ),
+    { status: 200, headers: { "content-type": "application/json" } },
+  );
+}
+
+/**
  * Lightweight diagnostics endpoint: reports whether the expected bindings and
  * secrets are present (never their values).
  */
@@ -135,11 +207,13 @@ function handleHealthRoute(request: Request, env: Record<string, unknown> | unde
   const url = new URL(request.url);
   if (url.pathname !== "/api/health") return null;
 
+  // Reports only metadata (presence + length), never the secret value itself.
   const describe = (name: string) => {
     const value = env?.[name];
     return {
       name,
-      present: value !== undefined && value !== null && value !== "",
+      present: typeof value === "string" && value.length > 0,
+      length: typeof value === "string" ? value.length : 0,
       type: typeof value,
     };
   };
@@ -175,6 +249,9 @@ export default {
     // Diagnostics
     const healthResponse = handleHealthRoute(request, env);
     if (healthResponse) return healthResponse;
+
+    const aiProbeResponse = await handleAiProbeRoute(request);
+    if (aiProbeResponse) return aiProbeResponse;
 
     // Check for webhook route
     const webhookResponse = await handleWebhookRoute(request);
