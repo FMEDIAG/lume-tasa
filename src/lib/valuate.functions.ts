@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { setResponseStatus } from "@tanstack/react-start/server";
 import { z } from "zod";
+import { parseModelJson } from "@/lib/ai-retry";
 import {
   chatCompletion,
   clientIp,
@@ -10,7 +11,6 @@ import {
   roundMoney,
   type MetalSpots,
 } from "@/lib/lume-ai";
-import { cfSecret } from "@/lib/cf-env";
 import {
   applyCoinPriceGuards,
   coinIdFromText,
@@ -26,6 +26,7 @@ import {
 
 const MAX_PHOTO_CHARS = 1_500_000;
 const MAX_TOTAL_PHOTO_CHARS = 6_000_000;
+const MAX_VALUATION_DURATION_MS = 55_000;
 
 const DATA_URL_RE = /^data:image\/(png|jpe?g|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
 
@@ -152,10 +153,14 @@ const CoinIdSchema = z.object({
   grade: z.string().max(40).nullable().optional(),
   certNumber: z.string().max(40).nullable().optional(),
   isLikelyReproduction: z.boolean().optional().default(false),
-  marketType: z.enum(["bullion", "numismatic", "unknown"]).optional().default("unknown") as z.ZodType<
-    CoinMarketType
-  >,
-  goldForm: z.enum(["solid", "plated", "gilt", "unknown"]).optional().default("unknown") as z.ZodType<GoldForm>,
+  marketType: z
+    .enum(["bullion", "numismatic", "unknown"])
+    .optional()
+    .default("unknown") as z.ZodType<CoinMarketType>,
+  goldForm: z
+    .enum(["solid", "plated", "gilt", "unknown"])
+    .optional()
+    .default("unknown") as z.ZodType<GoldForm>,
   identification: z.string().max(2000),
   searchQuery: z.string().max(220),
   confidence: z.enum(["low", "medium", "high"]),
@@ -183,9 +188,7 @@ function photoContent(photos: Array<{ dataUrl: string }>, text: string) {
   ];
 }
 
-async function identifyCoin(
-  data: z.infer<typeof InputSchema>,
-): Promise<CoinId> {
+async function identifyCoin(data: z.infer<typeof InputSchema>, timeoutMs: number): Promise<CoinId> {
   const lang = data.lang;
   const system =
     lang === "es"
@@ -223,24 +226,20 @@ Return ONLY JSON with: title, country, denomination, year, mint, seriesName, met
       ? "Identifica esta moneda/billete. Contexto del usuario: "
       : "Identify this coin/banknote. User context: ") + (data.context || "(none)");
 
-  const { text } = await chatCompletion({
-    messages: [
-      { role: "system", content: system },
-      { role: "user", content: photoContent(data.photos, user) },
-    ],
-    json: true,
-    search: false,
-    timeoutMs: 45_000,
-    maxTokens: 1200,
-  });
-
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(text);
-  } catch {
-    throw new Error("Coin identification was not valid JSON");
-  }
-  const id = CoinIdSchema.parse(parsed);
+  const id = await chatCompletion(
+    {
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: photoContent(data.photos, user) },
+      ],
+      json: true,
+      search: false,
+      timeoutMs: Math.min(45_000, timeoutMs),
+      maxTokens: 1200,
+    },
+    ({ text }) =>
+      CoinIdSchema.parse(parseModelJson(text, "Coin identification was not valid JSON")),
+  );
   const withForm = { ...id, goldForm: inferGoldForm(id) };
   const weight = typicalFineWeightG(withForm);
   return weight && (!withForm.estimatedFineWeightG || withForm.estimatedFineWeightG <= 0)
@@ -252,6 +251,7 @@ async function priceCoin(
   data: z.infer<typeof InputSchema>,
   id: CoinId,
   spots: MetalSpots | null,
+  timeoutMs: number,
 ): Promise<ValuationResult> {
   const lang = data.lang;
   const spotLine = spots
@@ -334,24 +334,22 @@ Return ONLY JSON: meltEur, meltUsd, marketEurMin, marketEurMax, marketUsdMin, ma
     2,
   );
 
-  const { text, citations } = await chatCompletion({
-    messages: [
-      { role: "system", content: system },
-      { role: "user", content: user },
-    ],
-    json: true,
-    search: true,
-    timeoutMs: 75_000,
-    maxTokens: 1800,
-  });
-
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(text);
-  } catch {
-    throw new Error("Coin pricing was not valid JSON");
-  }
-  const price = CoinPriceSchema.parse(parsed);
+  const { price, citations } = await chatCompletion(
+    {
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+      json: true,
+      search: true,
+      timeoutMs: Math.min(75_000, timeoutMs),
+      maxTokens: 1800,
+    },
+    ({ text, citations }) => ({
+      price: CoinPriceSchema.parse(parseModelJson(text, "Coin pricing was not valid JSON")),
+      citations,
+    }),
+  );
 
   const sources = [...price.sources, ...citations.map((c) => c.slice(0, 200))].filter(Boolean);
   const uniqueSources = Array.from(new Set(sources)).slice(0, 8);
@@ -361,7 +359,7 @@ Return ONLY JSON: meltEur, meltUsd, marketEurMin, marketEurMax, marketUsdMin, ma
       ? `\n${lang === "es" ? "Comparable" : "Comparable"}: ${price.comparable}`
       : "";
 
-  let result: ValuationResult = {
+  const result: ValuationResult = {
     title: id.title.slice(0, 200),
     identification: id.identification.slice(0, 2000),
     priceEurMin: roundMoney(price.marketEurMin),
@@ -410,7 +408,7 @@ function applyBulkFloor(parsed: unknown): unknown {
 export const valuateItem = createServerFn({ method: "POST" })
   .validator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data }) => {
-    const apiKey = cfSecret("XAI_API_KEY") ?? cfSecret("LOVABLE_API_KEY");
+    const apiKey = process.env.XAI_API_KEY || process.env.LOVABLE_API_KEY;
     if (!apiKey) {
       console.error("[valuateItem] Missing XAI_API_KEY and LOVABLE_API_KEY");
       setResponseStatus(500);
@@ -433,11 +431,14 @@ export const valuateItem = createServerFn({ method: "POST" })
       throw new Error("Too many requests");
     }
 
+    const deadline = Date.now() + MAX_VALUATION_DURATION_MS;
+    const remainingTime = (maxMs: number) => Math.max(0, Math.min(maxMs, deadline - Date.now()));
+
     try {
       if (isCoinValuation(data.category, data.context)) {
         const spots = await getMetalSpots();
-        const id = await identifyCoin(data);
-        return await priceCoin(data, id, spots);
+        const id = await identifyCoin(data, remainingTime(45_000));
+        return await priceCoin(data, id, spots, remainingTime(75_000));
       }
 
       const categoryLine =
@@ -461,44 +462,43 @@ export const valuateItem = createServerFn({ method: "POST" })
         categoryLine +
         conditionLine;
 
-      const { text } = await chatCompletion({
-        messages: [
-          { role: "system", content: data.lang === "es" ? systemEs : systemEn },
-          { role: "user", content: photoContent(data.photos, userPrompt) },
-        ],
-        json: true,
-        search: true,
-        timeoutMs: 60_000,
-        maxTokens: 1800,
-      });
-
-      let parsed: unknown;
+      let out: ValuationResult;
       try {
-        parsed = JSON.parse(text);
-      } catch {
-        setResponseStatus(502);
-        throw new Error("Model did not return valid JSON");
+        out = await chatCompletion(
+          {
+            messages: [
+              { role: "system", content: data.lang === "es" ? systemEs : systemEn },
+              { role: "user", content: photoContent(data.photos, userPrompt) },
+            ],
+            json: true,
+            search: true,
+            timeoutMs: remainingTime(60_000),
+            maxTokens: 1800,
+          },
+          ({ text }) =>
+            ResultSchema.parse(
+              applyBulkFloor(parseModelJson(text, "Model did not return valid JSON")),
+            ),
+        );
+      } catch (error) {
+        if (error instanceof SyntaxError) {
+          setResponseStatus(502);
+          throw new Error("Model did not return valid JSON", { cause: error });
+        }
+        if (error instanceof z.ZodError) {
+          console.error("[valuateItem] Model output failed schema validation:", error.flatten());
+          setResponseStatus(502);
+          throw new Error("Valuation service returned an unexpected response", { cause: error });
+        }
+        throw error;
       }
-
-      parsed = applyBulkFloor(parsed);
-      const parsedResult = ResultSchema.safeParse(parsed);
-      if (!parsedResult.success) {
-        console.error("[valuateItem] Model output failed schema validation:", parsedResult.error.flatten());
-        setResponseStatus(502);
-        throw new Error("Valuation service returned an unexpected response");
-      }
-      let out = parsedResult.data;
       if (
         looksLikeCoinText(
           `${data.category} ${data.context} ${out.title} ${out.identification} ${out.notes}`,
         )
       ) {
         const spots = await getMetalSpots();
-        const id = coinIdFromText(
-          out.title,
-          `${out.identification}\n${out.notes}`,
-          out.confidence,
-        );
+        const id = coinIdFromText(out.title, `${out.identification}\n${out.notes}`, out.confidence);
         out = ResultSchema.parse({ ...out, ...applyCoinPriceGuards(out, id, spots, data.lang) });
       }
       return out;
