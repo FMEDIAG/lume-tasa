@@ -210,14 +210,14 @@ function NoPayPal({ t }: { t: DonateT }) {
 }
 
 function Thanks({ t }: { t: DonateT }) {
-  let donation: { name?: string; amount?: string } | null = null;
+  let donation: { name?: string } | null = null;
   try {
     donation = JSON.parse(sessionStorage.getItem(DONATION_KEY) || "null");
   } catch {
     donation = null;
   }
 
-  if (!donation?.name || !donation?.amount) {
+  if (!donation?.name) {
     return (
       <section className="mt-6">
         <div className="glass-crystal rounded-3xl p-5 text-center">
@@ -234,10 +234,8 @@ function Thanks({ t }: { t: DonateT }) {
     );
   }
 
-  const value = Number.parseFloat(donation.amount);
-  const amountLabel = `${value.toFixed(2)} €`;
   const reopen = () => {
-    window.open(`https://paypal.me/${PAYPAL_ME_USER}/${value.toFixed(2)}EUR`, "_blank", "noopener");
+    window.open(`https://paypal.me/${PAYPAL_ME_USER}`, "_blank", "noopener");
   };
 
   return (
@@ -246,7 +244,7 @@ function Thanks({ t }: { t: DonateT }) {
         <Heart className="mx-auto h-8 w-8 text-primary" />
         <h1 className="mt-3 text-lg font-semibold text-gradient-gold">{t.donation.thanksTitle}</h1>
         <p className="mt-2 text-sm leading-relaxed text-foreground/80">
-          {t.donation.thanksBody(donation.name, amountLabel)}
+          {t.donation.thanksBody(donation.name)}
         </p>
         <button
           onClick={reopen}
