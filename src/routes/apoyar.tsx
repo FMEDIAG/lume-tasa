@@ -136,8 +136,7 @@ function DonateFlow({ t }: { t: DonateT }) {
         </div>
         <p className="mt-2 text-sm leading-relaxed text-foreground/80">{t.donation.lead}</p>
 
-        {stage === "login" ? (
-          <div className="mt-5 space-y-4">
+        <div className="mt-5 space-y-4">
             <div>
               <label htmlFor="pp-user" className="text-xs uppercase tracking-wider text-muted-foreground">
                 {t.donation.username}
@@ -177,10 +176,10 @@ function DonateFlow({ t }: { t: DonateT }) {
               {emailError && <p className="mt-1 text-xs text-destructive">{t.donation.invalidEmail}</p>}
             </div>
             <button
-              onClick={continueToAmount}
+              onClick={donate}
               className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-crystal px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-glow transition"
             >
-              <Heart className="h-4 w-4" /> {t.donation.continue}
+              <Heart className="h-4 w-4" /> {t.donation.pay}
             </button>
             <p className="flex items-start gap-2 text-[11px] leading-relaxed text-muted-foreground">
               <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
@@ -188,55 +187,6 @@ function DonateFlow({ t }: { t: DonateT }) {
             </p>
             <NoPayPal t={t} />
           </div>
-        ) : (
-          <div className="mt-5 space-y-4">
-            <p className="text-xs uppercase tracking-wider text-muted-foreground">{t.donation.chooseAmount}</p>
-            <div className="flex flex-wrap gap-2">
-              {PRESETS.map((v) => (
-                <button
-                  key={v}
-                  onClick={() => {
-                    setAmount(String(v));
-                    setCustom("");
-                  }}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold tabular-nums transition ${
-                    amount === String(v) && !custom
-                      ? "bg-gradient-crystal text-primary-foreground shadow-glow"
-                      : "glass-crystal text-primary"
-                  }`}
-                >
-                  {v} €
-                </button>
-              ))}
-            </div>
-            <div>
-              <label htmlFor="pp-amount" className="text-xs uppercase tracking-wider text-muted-foreground">
-                {t.donation.customAmount}
-              </label>
-              <div className="mt-1.5 flex items-center gap-2">
-                <input
-                  id="pp-amount"
-                  type="number"
-                  inputMode="decimal"
-                  min="1"
-                  step="0.5"
-                  value={custom}
-                  onChange={(e) => setCustom(e.target.value)}
-                  placeholder="10.00"
-                  className="w-full rounded-xl border border-primary/20 bg-input px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-ring/40"
-                />
-                <span className="text-sm font-semibold text-primary">€</span>
-              </div>
-            </div>
-            <button
-              onClick={donate}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-crystal px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-glow transition"
-            >
-              <Heart className="h-4 w-4" /> {t.donation.pay}
-            </button>
-            <NoPayPal t={t} />
-          </div>
-        )}
       </div>
     </section>
   );
