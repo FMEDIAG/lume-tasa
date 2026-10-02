@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Heart } from "lucide-react";
 import { translations, type Lang } from "@/lib/i18n";
-import { paypalMeUrl } from "@/lib/donation";
+import { paypalMeUrl, openPayPalMe } from "@/lib/donation";
 
 export const Route = createFileRoute("/apoyar")({
   head: () => ({
@@ -40,14 +40,12 @@ function Apoyar() {
           {t.title}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{t.lead}</p>
-        <a
-          href={paypalMeUrl()}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          onClick={() => openPayPalMe()}
           className="mt-6 flex w-full items-center justify-center rounded-2xl bg-gradient-crystal px-6 py-4 text-base font-semibold text-primary-foreground shadow-glow"
         >
           {t.pay}
-        </a>
+        </button>
 
         <Link to="/" className="mt-8 text-center text-xs font-semibold text-primary">
           {t.backHome}
