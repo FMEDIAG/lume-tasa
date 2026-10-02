@@ -2,7 +2,7 @@ import { toast } from "sonner";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Camera, Images, Sparkles, History, Trash2, Save, Check, Globe, Focus } from "lucide-react";
+import { Camera, Images, Sparkles, History, Trash2, Save, Check, Globe, Focus, Heart } from "lucide-react";
 import { CameraCapture } from "@/components/CameraCapture";
 import { IntroScreen, INTRO_SEEN_KEY } from "@/components/IntroScreen";
 
@@ -473,6 +473,12 @@ function Index() {
               <p className="mt-2 text-center text-xs font-bold text-muted-foreground/80">
                 ©2026 FMEDIAG - Lume v1.0
               </p>
+              <Link
+                to="/apoyar"
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/30 glass-crystal px-6 py-3 text-sm font-semibold text-primary transition hover:shadow-glow"
+              >
+                <Heart className="h-4 w-4" /> {t.donate}
+              </Link>
             </section>
           )}
 
