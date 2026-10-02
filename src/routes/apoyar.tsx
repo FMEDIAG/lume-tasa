@@ -7,7 +7,6 @@ import { translations, type Lang } from "@/lib/i18n";
 const PAYPAL_ME_USER = "fmediag";
 
 const DONATION_KEY = "lume:donation";
-const PRESETS = [3, 5, 10, 20];
 const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.paypal.android.p2pmobile";
 
 export const Route = createFileRoute("/apoyar")({
@@ -105,33 +104,24 @@ function ApoyarPage() {
 type DonateT = (typeof translations)["es"] | (typeof translations)["en"];
 
 function DonateFlow({ t }: { t: DonateT }) {
-  const [stage, setStage] = useState<"login" | "amount" | "thanks">("login");
+  const [stage, setStage] = useState<"login" | "thanks">("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [userError, setUserError] = useState(false);
   const [emailError, setEmailError] = useState(false);
-  const [amount, setAmount] = useState<string>("5");
-  const [custom, setCustom] = useState("");
 
-  const continueToAmount = () => {
+  const donate = () => {
     const uBad = name.trim().length === 0;
     const eBad = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
     setUserError(uBad);
     setEmailError(eBad);
-    if (!uBad && !eBad) setStage("amount");
-  };
-
-  const payAmount = custom.trim() ? custom.trim().replace(",", ".") : amount;
-
-  const donate = () => {
-    const value = Number.parseFloat(payAmount);
-    if (!Number.isFinite(value) || value <= 0) return;
+    if (uBad || eBad) return;
     try {
-      sessionStorage.setItem(DONATION_KEY, JSON.stringify({ name: name.trim(), amount: String(value) }));
+      sessionStorage.setItem(DONATION_KEY, JSON.stringify({ name: name.trim() }));
     } catch {
       // sessionStorage no disponible: seguimos sin persistir la donación en curso.
     }
-    window.open(`https://paypal.me/${PAYPAL_ME_USER}/${value.toFixed(2)}EUR`, "_blank", "noopener");
+    window.open(`https://paypal.me/${PAYPAL_ME_USER}`, "_blank", "noopener");
     setStage("thanks");
   };
 
@@ -146,8 +136,7 @@ function DonateFlow({ t }: { t: DonateT }) {
         </div>
         <p className="mt-2 text-sm leading-relaxed text-foreground/80">{t.donation.lead}</p>
 
-        {stage === "login" ? (
-          <div className="mt-5 space-y-4">
+        <div className="mt-5 space-y-4">
             <div>
               <label htmlFor="pp-user" className="text-xs uppercase tracking-wider text-muted-foreground">
                 {t.donation.username}
@@ -187,10 +176,10 @@ function DonateFlow({ t }: { t: DonateT }) {
               {emailError && <p className="mt-1 text-xs text-destructive">{t.donation.invalidEmail}</p>}
             </div>
             <button
-              onClick={continueToAmount}
+              onClick={donate}
               className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-crystal px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-glow transition"
             >
-              <Heart className="h-4 w-4" /> {t.donation.continue}
+              <Heart className="h-4 w-4" /> {t.donation.pay}
             </button>
             <p className="flex items-start gap-2 text-[11px] leading-relaxed text-muted-foreground">
               <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
@@ -198,55 +187,6 @@ function DonateFlow({ t }: { t: DonateT }) {
             </p>
             <NoPayPal t={t} />
           </div>
-        ) : (
-          <div className="mt-5 space-y-4">
-            <p className="text-xs uppercase tracking-wider text-muted-foreground">{t.donation.chooseAmount}</p>
-            <div className="flex flex-wrap gap-2">
-              {PRESETS.map((v) => (
-                <button
-                  key={v}
-                  onClick={() => {
-                    setAmount(String(v));
-                    setCustom("");
-                  }}
-                  className={`rounded-full px-4 py-2 text-sm font-semibold tabular-nums transition ${
-                    amount === String(v) && !custom
-                      ? "bg-gradient-crystal text-primary-foreground shadow-glow"
-                      : "glass-crystal text-primary"
-                  }`}
-                >
-                  {v} €
-                </button>
-              ))}
-            </div>
-            <div>
-              <label htmlFor="pp-amount" className="text-xs uppercase tracking-wider text-muted-foreground">
-                {t.donation.customAmount}
-              </label>
-              <div className="mt-1.5 flex items-center gap-2">
-                <input
-                  id="pp-amount"
-                  type="number"
-                  inputMode="decimal"
-                  min="1"
-                  step="0.5"
-                  value={custom}
-                  onChange={(e) => setCustom(e.target.value)}
-                  placeholder="10.00"
-                  className="w-full rounded-xl border border-primary/20 bg-input px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-ring/40"
-                />
-                <span className="text-sm font-semibold text-primary">€</span>
-              </div>
-            </div>
-            <button
-              onClick={donate}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-crystal px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-glow transition"
-            >
-              <Heart className="h-4 w-4" /> {t.donation.pay}
-            </button>
-            <NoPayPal t={t} />
-          </div>
-        )}
       </div>
     </section>
   );
@@ -270,21 +210,21 @@ function NoPayPal({ t }: { t: DonateT }) {
 }
 
 function Thanks({ t }: { t: DonateT }) {
-  let donation: { name?: string; amount?: string } | null = null;
+  let donation: { name?: string } | null = null;
   try {
     donation = JSON.parse(sessionStorage.getItem(DONATION_KEY) || "null");
   } catch {
     donation = null;
   }
 
-  if (!donation?.name || !donation?.amount) {
+  if (!donation?.name) {
     return (
       <section className="mt-6">
         <div className="glass-crystal rounded-3xl p-5 text-center">
           <p className="text-sm text-foreground/80">{t.donation.thanksMissing}</p>
           <Link
             to="/apoyar"
-            search={{}}
+            search={{ step: undefined }}
             className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-gradient-crystal px-5 py-3 text-sm font-semibold text-primary-foreground"
           >
             <Heart className="h-4 w-4" /> {t.donate}
@@ -294,10 +234,8 @@ function Thanks({ t }: { t: DonateT }) {
     );
   }
 
-  const value = Number.parseFloat(donation.amount);
-  const amountLabel = `${value.toFixed(2)} €`;
   const reopen = () => {
-    window.open(`https://paypal.me/${PAYPAL_ME_USER}/${value.toFixed(2)}EUR`, "_blank", "noopener");
+    window.open(`https://paypal.me/${PAYPAL_ME_USER}`, "_blank", "noopener");
   };
 
   return (
@@ -306,7 +244,7 @@ function Thanks({ t }: { t: DonateT }) {
         <Heart className="mx-auto h-8 w-8 text-primary" />
         <h1 className="mt-3 text-lg font-semibold text-gradient-gold">{t.donation.thanksTitle}</h1>
         <p className="mt-2 text-sm leading-relaxed text-foreground/80">
-          {t.donation.thanksBody(donation.name, amountLabel)}
+          {t.donation.thanksBody(donation.name)}
         </p>
         <button
           onClick={reopen}
