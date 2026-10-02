@@ -1,8 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { setResponseStatus } from "@tanstack/react-start/server";
 import { z } from "zod";
+import { parseModelJson } from "@/lib/ai-retry";
 import { chatCompletion, clientIp, isAllowedOrigin, requestOriginHost } from "@/lib/lume-ai";
-import { cfSecret } from "@/lib/cf-env";
 
 const MAX_PHOTO_CHARS = 1_500_000;
 
@@ -69,8 +69,7 @@ function allowed(ip: string): boolean {
 export const detectCategory = createServerFn({ method: "POST" })
   .validator((data: unknown) => InputSchema.parse(data))
   .handler(async ({ data }) => {
-    // Get AI key: process.env locally, Cloudflare Workers binding in production
-    const apiKey = cfSecret("XAI_API_KEY") ?? cfSecret("LOVABLE_API_KEY");
+    const apiKey = process.env.XAI_API_KEY || process.env.LOVABLE_API_KEY;
     if (!apiKey) {
       throw new Error("AI is not available in this environment");
     }
@@ -91,31 +90,26 @@ export const detectCategory = createServerFn({ method: "POST" })
         ? `Eres un clasificador experto. Mira la foto y devuelve las 3 categorías más probables del objeto de esta lista EXACTA (usa la clave en inglés): art, cards, coins, stamps, watches, jewelry, electronics, books, music instrument, toys, vinyl, fashion, sports, memorabilia, bonsai, wine, furniture, militaria, luxury bags, minerals, gemstones, vehicles, boats, realestate, other. Usa "memorabilia" para autógrafos, objetos de cine, música o historia sin relación con el deporte, y "sports" solo para objetos deportivos (camisetas, balones, medallas, cartas de deportistas). Usa "bonsai" para árboles en maceta con estilo de bonsái. Usa "wine" para botellas de vino, cava, champán o licores. Usa "furniture" para muebles antiguos o de época. Usa "militaria" para objetos militares históricos (medallas, insignias, uniformes, cascos). Usa "luxury bags" para bolsos y complementos de marcas de lujo (no ropa general, que va en "fashion"). Usa "minerals" para especímenes de minerales o rocas en bruto sin tallar (cristales, geodas, fósiles). Usa "gemstones" para gemas o piedras preciosas sueltas ya talladas/pulidas pero sin montar en joya (si están montadas en un anillo, collar, etc., usa "jewelry"). Usa "coins" para monedas, billetes y piezas numismáticas encapsuladas (NGC/PCGS), INCLUYENDO monedas de oro macizo (escudos, onzas, soberanos, napoleones, krugerrand, eagles, pesetas de oro, peças/réis portuguesas): NUNCA las clasifiques como jewelry aunque brillen o parezcan una joya. Jewelry es solo para anillos, collares, pulseras y broches montados. Devuelve SOLO JSON: {"category":"<mejor_clave>","confidence":<0-100>,"candidates":[{"category":"<clave>","confidence":<0-100>}, ...3 elementos ordenados por confianza descendente]}. Las confidencias deben ser porcentajes enteros y sumar aproximadamente 100.`
         : `You are an expert classifier. Look at the photo and return the top 3 most likely categories from this EXACT list (use the English key): art, cards, coins, stamps, watches, jewelry, electronics, books, music instrument, toys, vinyl, fashion, sports, memorabilia, bonsai, wine, furniture, militaria, luxury bags, minerals, gemstones, vehicles, boats, realestate, other. Use "memorabilia" for autographs, film, music or historical items unrelated to sports, and "sports" only for sports-specific items (jerseys, balls, medals, athlete trading cards). Use "bonsai" for potted trees styled as bonsai. Use "wine" for wine, champagne or spirits bottles. Use "furniture" for antique or period furniture. Use "militaria" for historic military items (medals, insignia, uniforms, helmets). Use "luxury bags" for luxury-brand bags and accessories (not general clothing, which goes in "fashion"). Use "minerals" for raw, uncut mineral or rock specimens (crystals, geodes, fossils). Use "gemstones" for cut/polished loose gems not mounted in a piece of jewelry (if mounted in a ring, necklace, etc., use "jewelry" instead). Use "coins" for coins, banknotes and slabbed numismatic pieces (NGC/PCGS), INCLUDING solid gold coins (escudos, onzas, sovereigns, Napoléons, Krugerrands, eagles, gold pesetas, Portuguese peças/réis): NEVER classify those as jewelry even if they shine. Jewelry is only for mounted rings, necklaces, bracelets and brooches. Return ONLY JSON: {"category":"<best_key>","confidence":<0-100>,"candidates":[{"category":"<key>","confidence":<0-100>}, ...3 items ordered by descending confidence]}. Confidences are integer percentages and should sum to roughly 100.`;
 
-    const { text } = await chatCompletion({
-      messages: [
-        { role: "system", content: system },
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: data.lang === "es" ? "Clasifica este objeto." : "Classify this item.",
-            },
-            { type: "image_url", image_url: { url: data.dataUrl, detail: "low" } },
-          ],
-        },
-      ],
-      json: true,
-      search: false,
-      timeoutMs: 25_000,
-      maxTokens: 400,
-    });
-
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(text);
-    } catch {
-      throw new Error("Model did not return valid JSON");
-    }
-    return OutputSchema.parse(parsed);
+    return chatCompletion(
+      {
+        messages: [
+          { role: "system", content: system },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: data.lang === "es" ? "Clasifica este objeto." : "Classify this item.",
+              },
+              { type: "image_url", image_url: { url: data.dataUrl, detail: "low" } },
+            ],
+          },
+        ],
+        json: true,
+        search: false,
+        timeoutMs: 25_000,
+        maxTokens: 400,
+      },
+      ({ text }) => OutputSchema.parse(parseModelJson(text, "Model did not return valid JSON")),
+    );
   });

@@ -1,5 +1,5 @@
 import { getRequest } from "@tanstack/react-start/server";
-import { cfSecret } from "./cf-env";
+import { AiProviderError, isRetryableProviderStatus, withAiRetries } from "./ai-retry";
 
 const ALLOWED_ORIGINS: string[] = String(process.env.ALLOWED_ORIGINS ?? "")
   .split(",")
@@ -63,6 +63,14 @@ export type ChatResult = {
   citations: string[];
 };
 
+type ChatCompletionOptions = {
+  messages: ChatMessage[];
+  json?: boolean;
+  search?: boolean;
+  timeoutMs?: number;
+  maxTokens?: number;
+};
+
 async function parseChatJson(res: Response): Promise<ChatResult> {
   const json = (await res.json()) as {
     choices?: Array<{ message?: { content?: string } }>;
@@ -109,22 +117,33 @@ export function extractJsonText(raw: string): string {
   return body.slice(start, end + 1);
 }
 
-export async function chatCompletion(opts: {
-  messages: ChatMessage[];
-  json?: boolean;
-  search?: boolean;
-  timeoutMs?: number;
-  maxTokens?: number;
-}): Promise<ChatResult> {
+export function chatCompletion(opts: ChatCompletionOptions): Promise<ChatResult>;
+export function chatCompletion<T>(
+  opts: ChatCompletionOptions,
+  validate: (result: ChatResult) => T,
+): Promise<T>;
+export function chatCompletion<T>(
+  opts: ChatCompletionOptions,
+  validate?: (result: ChatResult) => T,
+): Promise<ChatResult | T> {
   const timeoutMs = opts.timeoutMs ?? 45_000;
-  const xaiKey = cfSecret("XAI_API_KEY") ?? cfSecret("LOVABLE_API_KEY");
-  const lovableKey = cfSecret("LOVABLE_API_KEY");
+  return withAiRetries(timeoutMs, async (attemptTimeoutMs) => {
+    const result = await chatCompletionOnce({ ...opts, timeoutMs: attemptTimeoutMs });
+    return validate ? validate(result) : result;
+  });
+}
+
+async function chatCompletionOnce(opts: ChatCompletionOptions): Promise<ChatResult> {
+  const timeoutMs = opts.timeoutMs ?? 45_000;
+  const xaiKey = process.env.XAI_API_KEY || process.env.LOVABLE_API_KEY;
+  const lovableKey = process.env.LOVABLE_API_KEY;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     let xaiError: string | null = null;
+    let lastXaiFailure: AiProviderError | undefined;
 
     if (xaiKey) {
       const searchModes: Array<"web_search" | "live_search" | "search_parameters" | "none"> =
@@ -144,6 +163,11 @@ export async function chatCompletion(opts: {
           });
           if (res.ok) return await parseChatJson(res);
           lastErr = await res.text();
+          lastXaiFailure = new AiProviderError(
+            `xAI failed: ${lastErr.slice(0, 120)}`,
+            isRetryableProviderStatus(res.status),
+            res.status,
+          );
           console.error(`[lume-ai] xAI ${mode} [${res.status}]: ${lastErr.slice(0, 280)}`);
           // 401/403 = clave inválida; 402/429 = sin crédito o límite alcanzado.
           // En cualquiera de estos casos no tiene sentido seguir insistiendo con xAI:
@@ -153,6 +177,12 @@ export async function chatCompletion(opts: {
           if (![400, 410, 422, 404].includes(res.status)) break;
         } catch (fetchErr) {
           lastErr = fetchErr instanceof Error ? fetchErr.message : String(fetchErr);
+          lastXaiFailure = new AiProviderError(
+            `xAI failed: ${lastErr.slice(0, 120)}`,
+            true,
+            undefined,
+            { cause: fetchErr },
+          );
           console.error(`[lume-ai] xAI ${mode} fetch failed: ${lastErr}`);
           break;
         }
@@ -163,28 +193,51 @@ export async function chatCompletion(opts: {
     // Si xAI no está configurada, o falló (clave inválida, sin crédito, error de red...),
     // caemos de verdad al gateway de Lovable en vez de fallar toda la tasación.
     if (lovableKey) {
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Lovable-API-Key": lovableKey,
-        },
-        body: JSON.stringify({
-          model: "google/gemini-3.6-flash",
-          messages: opts.messages,
-          response_format: opts.json ? { type: "json_object" } : undefined,
-        }),
-        signal: controller.signal,
-      });
+      let res: Response;
+      try {
+        res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Lovable-API-Key": lovableKey,
+          },
+          body: JSON.stringify({
+            model: "google/gemini-3.6-flash",
+            messages: opts.messages,
+            response_format: opts.json ? { type: "json_object" } : undefined,
+          }),
+          signal: controller.signal,
+        });
+      } catch (cause) {
+        const message = cause instanceof Error ? cause.message : String(cause);
+        const fallbackFailure = new AiProviderError(
+          `Lovable AI request failed: ${message}`,
+          true,
+          undefined,
+          { cause },
+        );
+        throw new AiProviderError(
+          lastXaiFailure
+            ? `${lastXaiFailure.message}; ${fallbackFailure.message}`
+            : fallbackFailure.message,
+          fallbackFailure.retryable || (lastXaiFailure?.retryable ?? false),
+          undefined,
+          { cause: fallbackFailure },
+        );
+      }
       if (!res.ok) {
         const text = await res.text();
         console.error(`[lume-ai] Lovable error [${res.status}]: ${text.slice(0, 400)}`);
-        throw new Error(xaiError ? `${xaiError}; gateway ${res.status}` : `gateway ${res.status}`);
+        throw new AiProviderError(
+          xaiError ? `${xaiError}; gateway ${res.status}` : `gateway ${res.status}`,
+          isRetryableProviderStatus(res.status) || (lastXaiFailure?.retryable ?? false),
+          res.status,
+        );
       }
       return parseChatJson(res);
     }
 
-    throw new Error(xaiError ?? "AI is not available in this environment");
+    throw lastXaiFailure ?? new AiProviderError("AI is not available in this environment", false);
   } finally {
     clearTimeout(timeout);
   }

@@ -15,13 +15,7 @@ dist-ssr
 .nitro
 .vinxi
 .tanstack/** # Caché y archivos de configuración de TanStack
-
-# Entorno de desarrollo y despliegue Cloudflare/Wrangler
 .wrangler/
-.dev.vars
-
-# Base de datos local (SQLite para desarrollo)
-.data/
 
 # Archivos y directorios específicos del editor y del IDE
 .vscode/*

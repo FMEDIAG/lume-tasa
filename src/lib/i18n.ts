@@ -14,8 +14,8 @@ export const translations = {
 
     photosCount: (n: number) => `${n} foto${n === 1 ? "" : "s"} añadida${n === 1 ? "" : "s"}`,
     minPhotos: "Añade al menos 1 foto para tasar",
-    minContext: "Añade contexto (marca, año, detalles...) para poder tasar",
-    contextOptional: "El contexto es opcional. Añade marca, año, detalles... para mejores resultados",
+    contextOptional:
+      "El contexto es opcional. Añade marca, año, detalles... para mejores resultados",
     category: "Categoría",
     categories: {
       auto: "Detectar automáticamente",
@@ -87,11 +87,10 @@ export const translations = {
       lead: "Continúa en PayPal para apoyar el proyecto de forma segura.",
       pay: "Donar con PayPal",
       backHome: "Volver a Lume",
-      thanksTitle: "Gracias por tu apoyo",
-      thanksBody: (amount: string) =>
-        `Gracias por apoyar Lume con ${amount}. Si aún no has completado el pago, puedes abrir PayPal con el botón de abajo.`,
+      thanksTitle: "Gracias por visitar Lume",
       thanksAgain: "Abrir PayPal de nuevo",
-      thanksMissing: "Gracias por apoyar Lume. Puedes continuar en PayPal o volver a la aplicación.",
+      thanksMissing:
+        "Las donaciones se realizan directamente en PayPal y Lume no registra los pagos. Puedes abrir PayPal o volver a la aplicación.",
     },
     detecting: "Detectando categoría...",
     suggested: "Sugerida por IA",
@@ -149,7 +148,6 @@ export const translations = {
 
     photosCount: (n: number) => `${n} photo${n === 1 ? "" : "s"} added`,
     minPhotos: "Add at least 1 photo to appraise",
-    minContext: "Context is optional. Add brand, year, details... for better results",
     contextOptional: "Context is optional. Add brand, year, details... for better results",
     category: "Category",
     categories: {
@@ -223,11 +221,10 @@ export const translations = {
       lead: "Continue to PayPal to support the project securely.",
       pay: "Donate with PayPal",
       backHome: "Back to Lume",
-      thanksTitle: "Thank you for your support",
-      thanksBody: (amount: string) =>
-        `Thank you for supporting Lume with ${amount}. If you have not completed the payment yet, you can open PayPal with the button below.`,
+      thanksTitle: "Thanks for visiting Lume",
       thanksAgain: "Open PayPal again",
-      thanksMissing: "Thank you for supporting Lume. You can continue to PayPal or return to the app.",
+      thanksMissing:
+        "Donations are handled directly by PayPal, and Lume does not record payments. You can open PayPal or return to the app.",
     },
     detecting: "Detecting category...",
     suggested: "AI suggestion",
