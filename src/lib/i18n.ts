@@ -83,7 +83,7 @@ export const translations = {
     donate: "Apoya el proyecto",
     donation: {
       title: "Apoya Lume con PayPal",
-      lead: "Indica el usuario y el correo de tu cuenta PayPal. Después eliges el importe y PayPal te muestra tu saldo al confirmar el pago.",
+      lead: "Indica el usuario y el correo de tu cuenta PayPal. Después entrarás directamente en PayPal, donde ya podrás donar con tu saldo o tarjeta.",
       username: "Usuario de PayPal",
       email: "Correo electrónico",
       continue: "Continuar",
@@ -91,16 +91,14 @@ export const translations = {
       invalidEmail: "Escribe un correo válido.",
       balanceNote:
         "PayPal muestra tu saldo real en su página al confirmar. Desde Lume no se consulta ni se guarda la contraseña.",
-      chooseAmount: "Importe del apoyo",
-      customAmount: "Otro importe",
-      pay: "Donar con PayPal",
+      pay: "Donar en PayPal",
       noAccount: "No tengo cuenta de PayPal",
       noAccountHelp: "Crea una cuenta con la app oficial de PayPal y vuelve para apoyar el proyecto.",
       playStore: "Descargar PayPal en Play Store",
       backHome: "Volver a Lume",
       thanksTitle: "Gracias por tu apoyo",
-      thanksBody: (name: string, amount: string) =>
-        `${name}, gracias por apoyar Lume con ${amount}. Si PayPal no se abrió, completa el pago con el botón de abajo.`,
+      thanksBody: (name: string) =>
+        `${name}, gracias por apoyar Lume. Si PayPal no se abrió, completa el pago con el botón de abajo.`,
       thanksAgain: "Abrir PayPal de nuevo",
       thanksMissing: "No hay una donación en curso. Puedes empezar desde la página de apoyo.",
     },
@@ -229,7 +227,7 @@ export const translations = {
     donate: "Support the project",
     donation: {
       title: "Support Lume with PayPal",
-      lead: "Enter the username and email of your PayPal account. Then choose an amount. PayPal shows your balance when you confirm the payment.",
+      lead: "Enter the username and email of your PayPal account. Then you'll go straight to PayPal, where you can donate with your balance or card.",
       username: "PayPal username",
       email: "Email address",
       continue: "Continue",
@@ -237,16 +235,14 @@ export const translations = {
       invalidEmail: "Enter a valid email address.",
       balanceNote:
         "PayPal shows your real balance on its own page when you confirm. Lume never reads it or stores your password.",
-      chooseAmount: "Support amount",
-      customAmount: "Other amount",
-      pay: "Donate with PayPal",
+      pay: "Donate on PayPal",
       noAccount: "I don't have a PayPal account",
       noAccountHelp: "Create an account with the official PayPal app, then come back to support the project.",
       playStore: "Get PayPal on the Play Store",
       backHome: "Back to Lume",
       thanksTitle: "Thank you for your support",
-      thanksBody: (name: string, amount: string) =>
-        `${name}, thank you for supporting Lume with ${amount}. If PayPal did not open, finish the payment with the button below.`,
+      thanksBody: (name: string) =>
+        `${name}, thank you for supporting Lume. If PayPal did not open, finish the payment with the button below.`,
       thanksAgain: "Open PayPal again",
       thanksMissing: "There is no donation in progress. You can start from the support page.",
     },

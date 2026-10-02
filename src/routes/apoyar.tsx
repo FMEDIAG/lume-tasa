@@ -7,7 +7,6 @@ import { translations, type Lang } from "@/lib/i18n";
 const PAYPAL_ME_USER = "fmediag";
 
 const DONATION_KEY = "lume:donation";
-const PRESETS = [3, 5, 10, 20];
 const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.paypal.android.p2pmobile";
 
 export const Route = createFileRoute("/apoyar")({
@@ -105,33 +104,24 @@ function ApoyarPage() {
 type DonateT = (typeof translations)["es"] | (typeof translations)["en"];
 
 function DonateFlow({ t }: { t: DonateT }) {
-  const [stage, setStage] = useState<"login" | "amount" | "thanks">("login");
+  const [stage, setStage] = useState<"login" | "thanks">("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [userError, setUserError] = useState(false);
   const [emailError, setEmailError] = useState(false);
-  const [amount, setAmount] = useState<string>("5");
-  const [custom, setCustom] = useState("");
 
-  const continueToAmount = () => {
+  const donate = () => {
     const uBad = name.trim().length === 0;
     const eBad = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
     setUserError(uBad);
     setEmailError(eBad);
-    if (!uBad && !eBad) setStage("amount");
-  };
-
-  const payAmount = custom.trim() ? custom.trim().replace(",", ".") : amount;
-
-  const donate = () => {
-    const value = Number.parseFloat(payAmount);
-    if (!Number.isFinite(value) || value <= 0) return;
+    if (uBad || eBad) return;
     try {
-      sessionStorage.setItem(DONATION_KEY, JSON.stringify({ name: name.trim(), amount: String(value) }));
+      sessionStorage.setItem(DONATION_KEY, JSON.stringify({ name: name.trim() }));
     } catch {
       // sessionStorage no disponible: seguimos sin persistir la donación en curso.
     }
-    window.open(`https://paypal.me/${PAYPAL_ME_USER}/${value.toFixed(2)}EUR`, "_blank", "noopener");
+    window.open(`https://paypal.me/${PAYPAL_ME_USER}`, "_blank", "noopener");
     setStage("thanks");
   };
 
