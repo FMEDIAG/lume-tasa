@@ -475,6 +475,7 @@ function Index() {
               </p>
               <Link
                 to="/apoyar"
+                search={{ step: undefined }}
                 className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/30 glass-crystal px-6 py-3 text-sm font-semibold text-primary transition hover:shadow-glow"
               >
                 <Heart className="h-4 w-4" /> {t.donate}
