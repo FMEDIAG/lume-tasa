@@ -19,24 +19,11 @@
   <body>
     <main>
       <h1>Gracias por tu apoyo</h1>
-      <p id="body">Gracias por apoyar Lume.</p>
-      <a id="again" class="btn" hidden target="_blank" rel="noopener noreferrer">Abrir PayPal de nuevo</a>
-      <p><a href="apoyar.html">Apoya el proyecto</a></p>
+      <p>Gracias por apoyar Lume. Puedes continuar en PayPal o volver a la aplicación.</p>
+      <a class="btn" href="https://www.paypal.com/paypalme/FMEDIAG" target="_blank" rel="noopener noreferrer">
+        Abrir PayPal
+      </a>
       <p><a href="./">Volver</a></p>
     </main>
-    <script>
-      const raw = sessionStorage.getItem("lume:donation");
-      const data = raw ? JSON.parse(raw) : null;
-      if (data && data.username && data.amount) {
-        const amount = Number.isInteger(data.amount) ? String(data.amount) : Number(data.amount).toFixed(2);
-        document.getElementById("body").textContent =
-          data.username + ", gracias por apoyar Lume con " + amount + "€. Si PayPal no se abrió, completa el pago con el botón de abajo.";
-        const again = document.getElementById("again");
-        again.hidden = false;
-        again.href = "https://www.paypal.com/paypalme/FMEDIAG/" + amount + "EUR";
-      } else {
-        document.getElementById("body").textContent = "No hay una donación en curso. Puedes empezar desde la página de apoyo.";
-      }
-    </script>
   </body>
 </html>
