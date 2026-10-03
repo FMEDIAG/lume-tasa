@@ -5,7 +5,7 @@ import { translations, type Lang } from "@/lib/i18n";
 
 // PayPal se abre directamente: cada donante inicia sesión allí con su
 // usuario o correo y realiza la donación desde su propia cuenta.
-const PAYPAL_URL = "https://www.paypal.com/";
+const PAYPAL_URL = "https://paypal.me/FMEDIAG";
 const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.paypal.android.p2pmobile";
 
 export const Route = createFileRoute("/apoyar")({
