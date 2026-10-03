@@ -10,23 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApoyarRouteImport } from './routes/apoyar'
-import { Route as GraciasRouteImport } from './routes/gracias'
 import { Route as HistoryRouteImport } from './routes/history'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApoyarRoute = ApoyarRouteImport.update({
-  id: '/apoyar',
-  path: '/apoyar',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GraciasRoute = GraciasRouteImport.update({
-  id: '/gracias',
-  path: '/gracias',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HistoryRoute = HistoryRouteImport.update({
@@ -37,35 +25,27 @@ const HistoryRoute = HistoryRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/apoyar': typeof ApoyarRoute
-  '/gracias': typeof GraciasRoute
   '/history': typeof HistoryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/apoyar': typeof ApoyarRoute
-  '/gracias': typeof GraciasRoute
   '/history': typeof HistoryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/apoyar': typeof ApoyarRoute
-  '/gracias': typeof GraciasRoute
   '/history': typeof HistoryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/apoyar' | '/gracias' | '/history'
+  fullPaths: '/' | '/history'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/apoyar' | '/gracias' | '/history'
-  id: '__root__' | '/' | '/apoyar' | '/gracias' | '/history'
+  to: '/' | '/history'
+  id: '__root__' | '/' | '/history'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ApoyarRoute: typeof ApoyarRoute
-  GraciasRoute: typeof GraciasRoute
   HistoryRoute: typeof HistoryRoute
 }
 
@@ -76,20 +56,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/apoyar': {
-      id: '/apoyar'
-      path: '/apoyar'
-      fullPath: '/apoyar'
-      preLoaderRoute: typeof ApoyarRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/gracias': {
-      id: '/gracias'
-      path: '/gracias'
-      fullPath: '/gracias'
-      preLoaderRoute: typeof GraciasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/history': {
@@ -104,8 +70,6 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ApoyarRoute: ApoyarRoute,
-  GraciasRoute: GraciasRoute,
   HistoryRoute: HistoryRoute,
 }
 export const routeTree = rootRouteImport
