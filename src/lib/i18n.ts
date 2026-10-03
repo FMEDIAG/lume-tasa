@@ -83,10 +83,18 @@ export const translations = {
     donate: "Apoya el proyecto",
     donation: {
       title: "Apoya Lume con PayPal",
-      lead: "Se abrirá PayPal. Inicia sesión allí con tu usuario o correo y realiza la donación directamente desde tu cuenta, con tu saldo o tarjeta.",
-      balanceNote:
-        "PayPal muestra tu saldo real en su página al confirmar. Desde Lume no se consulta ni se guarda la contraseña.",
+      lead: "Introduce tu usuario y correo de PayPal y se abrirá la página de PayPal para que inicies sesión y realices la donación. Lume no guarda esos datos.",
+      paypalUser: "Usuario de PayPal",
+      paypalUserPlaceholder: "Tu nombre de usuario de PayPal",
+      paypalEmail: "Correo electrónico de PayPal",
+      paypalEmailPlaceholder: "tu@correo.com",
+      privacyNote:
+        "Estos datos solo se usan para abrir PayPal y no se guardan en Lume ni se envían a ningún servidor.",
       pay: "Donar en PayPal",
+      thanksTitle: "¡Gracias por tu apoyo!",
+      thanksBody: (name: string) =>
+        `Gracias, ${name}. Tu donación ayuda a mantener y mejorar Lume.`,
+      reopenPaypal: "Reabrir PayPal",
       noAccount: "No tengo cuenta de PayPal",
       noAccountHelp: "Crea una cuenta con la app oficial de PayPal y vuelve para apoyar el proyecto.",
       playStore: "Descargar PayPal en Play Store",
@@ -217,10 +225,18 @@ export const translations = {
     donate: "Support the project",
     donation: {
       title: "Support Lume with PayPal",
-      lead: "PayPal will open. Sign in there with your username or email and donate directly from your account, using your balance or card.",
-      balanceNote:
-        "PayPal shows your real balance on its own page when you confirm. Lume never reads it or stores your password.",
+      lead: "Enter your PayPal username and email and PayPal's page will open so you can sign in and donate. Lume does not store that data.",
+      paypalUser: "PayPal username",
+      paypalUserPlaceholder: "Your PayPal username",
+      paypalEmail: "PayPal email",
+      paypalEmailPlaceholder: "you@email.com",
+      privacyNote:
+        "This data is only used to open PayPal and is not stored in Lume or sent to any server.",
       pay: "Donate on PayPal",
+      thanksTitle: "Thank you for your support!",
+      thanksBody: (name: string) =>
+        `Thank you, ${name}. Your donation helps keep and improve Lume.`,
+      reopenPaypal: "Reopen PayPal",
       noAccount: "I don't have a PayPal account",
       noAccountHelp: "Create an account with the official PayPal app, then come back to support the project.",
       playStore: "Get PayPal on the Play Store",
