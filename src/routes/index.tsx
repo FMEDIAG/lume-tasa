@@ -12,7 +12,6 @@ import {
   Check,
   Globe,
   Focus,
-  Heart,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
@@ -509,10 +508,15 @@ function Index() {
                 href={LIBERAPAY_DONATION_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mx-auto mt-4 flex w-fit items-center justify-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-primary transition hover:bg-primary/15 glass-crystal"
+                className="mx-auto mt-4 inline-flex rounded"
+                aria-label={t.donate}
               >
-                <Heart className="h-3.5 w-3.5" />
-                {t.donate}
+                <img
+                  src="https://liberapay.com/assets/widgets/donate.svg"
+                  alt=""
+                  width={83}
+                  height={30}
+                />
               </a>
               <p className="mt-2 text-center text-xs text-muted-foreground">{t.donateHint}</p>
               <p className="mt-2 text-center text-xs font-bold text-muted-foreground/80">
