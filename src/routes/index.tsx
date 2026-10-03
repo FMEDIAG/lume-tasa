@@ -465,6 +465,13 @@ function Index() {
               )}
               {error && <p className="mt-3 text-center text-sm text-destructive">{error}</p>}
               <p className="mt-6 text-center text-[11px] text-muted-foreground/70">{t.poweredBy}</p>
+              <Link
+                to="/apoyar"
+                search={{ step: undefined }}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/30 glass-crystal px-6 py-3 text-sm font-semibold text-primary transition hover:shadow-glow"
+              >
+                <Heart className="h-4 w-4" /> {t.donate}
+              </Link>
               <img
                 src="/fmediag-logo.png"
                 alt="FMEDIAG"
@@ -473,13 +480,6 @@ function Index() {
               <p className="mt-2 text-center text-xs font-bold text-muted-foreground/80">
                 ©2026 FMEDIAG - Lume v1.0
               </p>
-              <Link
-                to="/apoyar"
-                search={{ step: undefined }}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/30 glass-crystal px-6 py-3 text-sm font-semibold text-primary transition hover:shadow-glow"
-              >
-                <Heart className="h-4 w-4" /> {t.donate}
-              </Link>
             </section>
           )}
 
