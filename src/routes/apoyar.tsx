@@ -3,10 +3,9 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, Globe, Heart, ShieldCheck } from "lucide-react";
 import { translations, type Lang } from "@/lib/i18n";
 
-// Usuario receptor de las donaciones (enlace paypal.me).
-const PAYPAL_ME_USER = "fmediag";
-
-const DONATION_KEY = "lume:donation";
+// PayPal se abre directamente: cada donante inicia sesión allí con su
+// usuario o correo y realiza la donación desde su propia cuenta.
+const PAYPAL_URL = "https://www.paypal.com/";
 const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.paypal.android.p2pmobile";
 
 export const Route = createFileRoute("/apoyar")({
@@ -79,7 +78,6 @@ function BackgroundGlow() {
 function ApoyarPage() {
   const [lang, setLang] = useLangState();
   const t = translations[lang];
-  const step = Route.useSearch().step;
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background px-4 py-8">
@@ -95,102 +93,41 @@ function ApoyarPage() {
           <LangToggle lang={lang} setLang={setLang} />
         </div>
 
-        {step === "gracias" ? <Thanks t={t} /> : <DonateFlow t={t} />}
+        <section className="mt-6">
+          <div className="glass-crystal rounded-3xl p-5">
+            <div className="flex items-center gap-2">
+              <Heart className="h-5 w-5 text-primary" />
+              <h1 className="text-lg font-semibold text-gradient-gold">{t.donation.title}</h1>
+            </div>
+            <p className="mt-2 text-sm leading-relaxed text-foreground/80">{t.donation.lead}</p>
+
+            <div className="mt-5 space-y-4">
+              <button
+                onClick={() => window.open(PAYPAL_URL, "_blank", "noopener")}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-crystal px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-glow transition"
+              >
+                <Heart className="h-4 w-4" /> {t.donation.pay}
+              </button>
+              <p className="flex items-start gap-2 text-[11px] leading-relaxed text-muted-foreground">
+                <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                {t.donation.balanceNote}
+              </p>
+              <NoPayPal t={t} />
+              <Link
+                to="/"
+                className="flex w-full items-center justify-center rounded-2xl glass-crystal px-6 py-3 text-sm font-semibold text-primary"
+              >
+                {t.donation.backHome}
+              </Link>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );
 }
 
 type DonateT = (typeof translations)["es"] | (typeof translations)["en"];
-
-function DonateFlow({ t }: { t: DonateT }) {
-  const [stage, setStage] = useState<"login" | "thanks">("login");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [userError, setUserError] = useState(false);
-  const [emailError, setEmailError] = useState(false);
-
-  const donate = () => {
-    const uBad = name.trim().length === 0;
-    const eBad = !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-    setUserError(uBad);
-    setEmailError(eBad);
-    if (uBad || eBad) return;
-    try {
-      sessionStorage.setItem(DONATION_KEY, JSON.stringify({ name: name.trim() }));
-    } catch {
-      // sessionStorage no disponible: seguimos sin persistir la donación en curso.
-    }
-    window.open(`https://paypal.me/${PAYPAL_ME_USER}`, "_blank", "noopener");
-    setStage("thanks");
-  };
-
-  if (stage === "thanks") return <Thanks t={t} />;
-
-  return (
-    <section className="mt-6">
-      <div className="glass-crystal rounded-3xl p-5">
-        <div className="flex items-center gap-2">
-          <Heart className="h-5 w-5 text-primary" />
-          <h1 className="text-lg font-semibold text-gradient-gold">{t.donation.title}</h1>
-        </div>
-        <p className="mt-2 text-sm leading-relaxed text-foreground/80">{t.donation.lead}</p>
-
-        <div className="mt-5 space-y-4">
-            <div>
-              <label htmlFor="pp-user" className="text-xs uppercase tracking-wider text-muted-foreground">
-                {t.donation.username}
-              </label>
-              <input
-                id="pp-user"
-                type="text"
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  if (e.target.value.trim()) setUserError(false);
-                }}
-                autoComplete="username"
-                className={`mt-1.5 w-full rounded-xl border bg-input px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 ${
-                  userError ? "border-destructive/60 focus:border-destructive" : "border-primary/20 focus:border-primary/60"
-                }`}
-              />
-              {userError && <p className="mt-1 text-xs text-destructive">{t.donation.invalidUser}</p>}
-            </div>
-            <div>
-              <label htmlFor="pp-email" className="text-xs uppercase tracking-wider text-muted-foreground">
-                {t.donation.email}
-              </label>
-              <input
-                id="pp-email"
-                type="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.target.value.trim())) setEmailError(false);
-                }}
-                autoComplete="email"
-                className={`mt-1.5 w-full rounded-xl border bg-input px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 ${
-                  emailError ? "border-destructive/60 focus:border-destructive" : "border-primary/20 focus:border-primary/60"
-                }`}
-              />
-              {emailError && <p className="mt-1 text-xs text-destructive">{t.donation.invalidEmail}</p>}
-            </div>
-            <button
-              onClick={donate}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-crystal px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-glow transition"
-            >
-              <Heart className="h-4 w-4" /> {t.donation.pay}
-            </button>
-            <p className="flex items-start gap-2 text-[11px] leading-relaxed text-muted-foreground">
-              <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-              {t.donation.balanceNote}
-            </p>
-            <NoPayPal t={t} />
-          </div>
-      </div>
-    </section>
-  );
-}
 
 function NoPayPal({ t }: { t: DonateT }) {
   return (
@@ -206,59 +143,5 @@ function NoPayPal({ t }: { t: DonateT }) {
         {t.donation.playStore}
       </a>
     </div>
-  );
-}
-
-function Thanks({ t }: { t: DonateT }) {
-  let donation: { name?: string } | null = null;
-  try {
-    donation = JSON.parse(sessionStorage.getItem(DONATION_KEY) || "null");
-  } catch {
-    donation = null;
-  }
-
-  if (!donation?.name) {
-    return (
-      <section className="mt-6">
-        <div className="glass-crystal rounded-3xl p-5 text-center">
-          <p className="text-sm text-foreground/80">{t.donation.thanksMissing}</p>
-          <Link
-            to="/apoyar"
-            search={{ step: undefined }}
-            className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-gradient-crystal px-5 py-3 text-sm font-semibold text-primary-foreground"
-          >
-            <Heart className="h-4 w-4" /> {t.donate}
-          </Link>
-        </div>
-      </section>
-    );
-  }
-
-  const reopen = () => {
-    window.open(`https://paypal.me/${PAYPAL_ME_USER}`, "_blank", "noopener");
-  };
-
-  return (
-    <section className="mt-6">
-      <div className="glass-crystal rounded-3xl p-5 text-center">
-        <Heart className="mx-auto h-8 w-8 text-primary" />
-        <h1 className="mt-3 text-lg font-semibold text-gradient-gold">{t.donation.thanksTitle}</h1>
-        <p className="mt-2 text-sm leading-relaxed text-foreground/80">
-          {t.donation.thanksBody(donation.name)}
-        </p>
-        <button
-          onClick={reopen}
-          className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-crystal px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-glow transition"
-        >
-          <Heart className="h-4 w-4" /> {t.donation.thanksAgain}
-        </button>
-        <Link
-          to="/"
-          className="mt-3 inline-flex w-full items-center justify-center rounded-2xl glass-crystal px-6 py-3 text-sm font-semibold text-primary"
-        >
-          {t.donation.backHome}
-        </Link>
-      </div>
-    </section>
   );
 }
