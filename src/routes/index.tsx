@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { CameraCapture } from "@/components/CameraCapture";
 import { IntroScreen, INTRO_SEEN_KEY } from "@/components/IntroScreen";
-import { PAYPAL_DONATION_URL } from "@/lib/donation";
+import { LIBERAPAY_DONATION_URL } from "@/lib/donation";
 
 import { valuateItem } from "@/lib/valuate.functions";
 import { detectCategory } from "@/lib/detect-category.functions";
@@ -505,20 +505,16 @@ function Index() {
                 </div>
               )}
               <p className="mt-6 text-center text-[11px] text-muted-foreground/70">{t.poweredBy}</p>
-              {PAYPAL_DONATION_URL && (
-                <>
-                  <a
-                    href={PAYPAL_DONATION_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mx-auto mt-4 flex w-fit items-center justify-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-primary transition hover:bg-primary/15 glass-crystal"
-                  >
-                    <Heart className="h-3.5 w-3.5" />
-                    {t.donate}
-                  </a>
-                  <p className="mt-2 text-center text-xs text-muted-foreground">{t.donateHint}</p>
-                </>
-              )}
+              <a
+                href={LIBERAPAY_DONATION_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mx-auto mt-4 flex w-fit items-center justify-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-primary transition hover:bg-primary/15 glass-crystal"
+              >
+                <Heart className="h-3.5 w-3.5" />
+                {t.donate}
+              </a>
+              <p className="mt-2 text-center text-xs text-muted-foreground">{t.donateHint}</p>
               <p className="mt-2 text-center text-xs font-bold text-muted-foreground/80">
                 ©2026 FMEDIAG - Lume v1.0
               </p>

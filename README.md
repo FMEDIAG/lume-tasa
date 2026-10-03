@@ -34,6 +34,6 @@ Se muestra un informe claro exportable.
 
 Si usas el contexto, mejor conciso pero detallado, así afinará la tasación.
 
-Las donaciones se enlazan a una URL oficial de checkout/donación de PayPal configurada como `VITE_PAYPAL_DONATION_URL`. El usuario inicia sesión en PayPal y dona allí; Lume nunca recoge ni almacena credenciales ni correo. No se usa PayPal.Me.
+Las donaciones se realizan directamente en [Liberapay/FMEDIAG](https://liberapay.com/FMEDIAG/donate), donde cada usuario elige el importe. Lume solo abre el enlace y no recoge ni almacena datos de pago.
 
 ©2026 FMEDIAG - Lume v1.0
