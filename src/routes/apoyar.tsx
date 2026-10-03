@@ -78,6 +78,26 @@ function BackgroundGlow() {
 function ApoyarPage() {
   const [lang, setLang] = useLangState();
   const t = translations[lang];
+  const [user, setUser] = useState("");
+  const [email, setEmail] = useState("");
+  const [donated, setDonated] = useState(false);
+  const [donorName, setDonorName] = useState("");
+
+  const canDonate = user.trim().length > 0 && /^\S+@\S+\.\S+$/.test(email.trim());
+
+  const openPaypal = () => {
+    window.open(PAYPAL_URL, "_blank", "noopener");
+  };
+
+  const handleDonate = () => {
+    if (!canDonate) return;
+    // Lume no guarda estos datos: solo se usan para este paso.
+    setDonorName(user.trim());
+    setUser("");
+    setEmail("");
+    setDonated(true);
+    openPaypal();
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background px-4 py-8">
@@ -95,31 +115,80 @@ function ApoyarPage() {
 
         <section className="mt-6">
           <div className="glass-crystal rounded-3xl p-5">
-            <div className="flex items-center gap-2">
-              <Heart className="h-5 w-5 text-primary" />
-              <h1 className="text-lg font-semibold text-gradient-gold">{t.donation.title}</h1>
-            </div>
-            <p className="mt-2 text-sm leading-relaxed text-foreground/80">{t.donation.lead}</p>
+            {donated ? (
+              <div className="text-center">
+                <Heart className="mx-auto h-8 w-8 text-primary" />
+                <h1 className="mt-2 text-lg font-semibold text-gradient-gold">{t.donation.thanksTitle}</h1>
+                <p className="mt-2 text-sm leading-relaxed text-foreground/80">
+                  {t.donation.thanksBody(donorName)}
+                </p>
+                <div className="mt-5 space-y-3">
+                  <button
+                    onClick={openPaypal}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-crystal px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-glow transition"
+                  >
+                    <Heart className="h-4 w-4" /> {t.donation.reopenPaypal}
+                  </button>
+                  <Link
+                    to="/"
+                    className="flex w-full items-center justify-center rounded-2xl glass-crystal px-6 py-3 text-sm font-semibold text-primary"
+                  >
+                    {t.donation.backHome}
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <Heart className="h-5 w-5 text-primary" />
+                  <h1 className="text-lg font-semibold text-gradient-gold">{t.donation.title}</h1>
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-foreground/80">{t.donation.lead}</p>
 
-            <div className="mt-5 space-y-4">
-              <button
-                onClick={() => window.open(PAYPAL_URL, "_blank", "noopener")}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-crystal px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-glow transition"
-              >
-                <Heart className="h-4 w-4" /> {t.donation.pay}
-              </button>
-              <p className="flex items-start gap-2 text-[11px] leading-relaxed text-muted-foreground">
-                <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-                {t.donation.balanceNote}
-              </p>
-              <NoPayPal t={t} />
-              <Link
-                to="/"
-                className="flex w-full items-center justify-center rounded-2xl glass-crystal px-6 py-3 text-sm font-semibold text-primary"
-              >
-                {t.donation.backHome}
-              </Link>
-            </div>
+                <div className="mt-5 space-y-4">
+                  <div>
+                    <label className="text-xs font-semibold text-foreground/80">{t.donation.paypalUser}</label>
+                    <input
+                      type="text"
+                      value={user}
+                      onChange={(e) => setUser(e.target.value)}
+                      placeholder={t.donation.paypalUserPlaceholder}
+                      autoComplete="off"
+                      className="glass-crystal mt-1 w-full rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-foreground/80">{t.donation.paypalEmail}</label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder={t.donation.paypalEmailPlaceholder}
+                      autoComplete="off"
+                      className="glass-crystal mt-1 w-full rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                  <button
+                    onClick={handleDonate}
+                    disabled={!canDonate}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-crystal px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-glow transition disabled:opacity-50 disabled:shadow-none"
+                  >
+                    <Heart className="h-4 w-4" /> {t.donation.pay}
+                  </button>
+                  <p className="flex items-start gap-2 text-[11px] leading-relaxed text-muted-foreground">
+                    <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                    {t.donation.privacyNote}
+                  </p>
+                  <NoPayPal t={t} />
+                  <Link
+                    to="/"
+                    className="flex w-full items-center justify-center rounded-2xl glass-crystal px-6 py-3 text-sm font-semibold text-primary"
+                  >
+                    {t.donation.backHome}
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
         </section>
       </div>
