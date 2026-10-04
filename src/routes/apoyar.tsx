@@ -1,12 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Globe, Heart, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Globe, Heart } from "lucide-react";
 import { translations, type Lang } from "@/lib/i18n";
 
-// PayPal se abre directamente: cada donante inicia sesión allí con su
-// usuario o correo y realiza la donación desde su propia cuenta.
-const PAYPAL_URL = "https://paypal.me/FMEDIAG";
-const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.paypal.android.p2pmobile";
+// Liberapay se abre directamente: cada donante realiza la donación desde
+// su propia cuenta en la página oficial de Liberapay.
+const LIBERAPAY_URL = "https://liberapay.com/FMEDIAG/donate";
 
 export const Route = createFileRoute("/apoyar")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -17,12 +16,12 @@ export const Route = createFileRoute("/apoyar")({
       { title: "Apoya Lume — Support Lume" },
       {
         name: "description",
-        content: "Apoya el proyecto Lume con una donación segura por PayPal. Support the Lume project with a PayPal donation.",
+        content: "Apoya el proyecto Lume con una donación segura por Liberapay. Support the Lume project with a Liberapay donation.",
       },
       { property: "og:title", content: "Apoya Lume — Support Lume" },
       {
         property: "og:description",
-        content: "Apoya el proyecto Lume con una donación segura por PayPal. Support the Lume project with a PayPal donation.",
+        content: "Apoya el proyecto Lume con una donación segura por Liberapay. Support the Lume project with a Liberapay donation.",
       },
       { property: "og:type", content: "website" },
     ],
@@ -78,25 +77,15 @@ function BackgroundGlow() {
 function ApoyarPage() {
   const [lang, setLang] = useLangState();
   const t = translations[lang];
-  const [user, setUser] = useState("");
-  const [email, setEmail] = useState("");
   const [donated, setDonated] = useState(false);
-  const [donorName, setDonorName] = useState("");
-
-  const canDonate = user.trim().length > 0 && /^\S+@\S+\.\S+$/.test(email.trim());
-
-  const openPaypal = () => {
-    window.open(PAYPAL_URL, "_blank", "noopener");
-  };
 
   const handleDonate = () => {
-    if (!canDonate) return;
-    // Lume no guarda estos datos: solo se usan para este paso.
-    setDonorName(user.trim());
-    setUser("");
-    setEmail("");
     setDonated(true);
-    openPaypal();
+    window.open(LIBERAPAY_URL, "_blank", "noopener");
+  };
+
+  const openLiberapay = () => {
+    window.open(LIBERAPAY_URL, "_blank", "noopener");
   };
 
   return (
@@ -120,14 +109,14 @@ function ApoyarPage() {
                 <Heart className="mx-auto h-8 w-8 text-primary" />
                 <h1 className="mt-2 text-lg font-semibold text-gradient-gold">{t.donation.thanksTitle}</h1>
                 <p className="mt-2 text-sm leading-relaxed text-foreground/80">
-                  {t.donation.thanksBody(donorName)}
+                  {t.donation.thanksBody}
                 </p>
                 <div className="mt-5 space-y-3">
                   <button
-                    onClick={openPaypal}
+                    onClick={openLiberapay}
                     className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-crystal px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-glow transition"
                   >
-                    <Heart className="h-4 w-4" /> {t.donation.reopenPaypal}
+                    <Heart className="h-4 w-4" /> {t.donation.reopenLiberapay}
                   </button>
                   <Link
                     to="/"
@@ -146,40 +135,12 @@ function ApoyarPage() {
                 <p className="mt-2 text-sm leading-relaxed text-foreground/80">{t.donation.lead}</p>
 
                 <div className="mt-5 space-y-4">
-                  <div>
-                    <label className="text-xs font-semibold text-foreground/80">{t.donation.paypalUser}</label>
-                    <input
-                      type="text"
-                      value={user}
-                      onChange={(e) => setUser(e.target.value)}
-                      placeholder={t.donation.paypalUserPlaceholder}
-                      autoComplete="off"
-                      className="glass-crystal mt-1 w-full rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-foreground/80">{t.donation.paypalEmail}</label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder={t.donation.paypalEmailPlaceholder}
-                      autoComplete="off"
-                      className="glass-crystal mt-1 w-full rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                    />
-                  </div>
                   <button
                     onClick={handleDonate}
-                    disabled={!canDonate}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-crystal px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-glow transition disabled:opacity-50 disabled:shadow-none"
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-crystal px-6 py-3.5 text-base font-semibold text-primary-foreground shadow-glow transition"
                   >
                     <Heart className="h-4 w-4" /> {t.donation.pay}
                   </button>
-                  <p className="flex items-start gap-2 text-[11px] leading-relaxed text-muted-foreground">
-                    <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
-                    {t.donation.privacyNote}
-                  </p>
-                  <NoPayPal t={t} />
                   <Link
                     to="/"
                     className="flex w-full items-center justify-center rounded-2xl glass-crystal px-6 py-3 text-sm font-semibold text-primary"
@@ -192,25 +153,6 @@ function ApoyarPage() {
           </div>
         </section>
       </div>
-    </div>
-  );
-}
-
-type DonateT = (typeof translations)["es"] | (typeof translations)["en"];
-
-function NoPayPal({ t }: { t: DonateT }) {
-  return (
-    <div className="rounded-2xl border border-primary/20 bg-primary/5 p-3.5">
-      <p className="text-sm font-semibold text-foreground/90">{t.donation.noAccount}</p>
-      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t.donation.noAccountHelp}</p>
-      <a
-        href={PLAY_STORE_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3.5 py-1.5 text-xs font-semibold text-primary transition hover:shadow-glow"
-      >
-        {t.donation.playStore}
-      </a>
     </div>
   );
 }
