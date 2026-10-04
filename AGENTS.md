@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Request mobile camera permission only after the first-run introduction CTA, then release the probe stream before opening the camera UI; this preserves Android gesture requirements and avoids holding two streams.
