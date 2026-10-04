@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useEffect, useState } from "react";
 import { Sparkles, Globe, Camera, Layers, Rocket, ShieldCheck, Images } from "lucide-react";
 import { translations, type Lang } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
