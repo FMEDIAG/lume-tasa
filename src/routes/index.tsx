@@ -243,7 +243,14 @@ function Index() {
 
   return (
     <>
-      {showIntro && <IntroScreen onStart={() => setShowIntro(false)} />}
+      {showIntro && (
+        <IntroScreen
+          onStart={(openCamera) => {
+            setShowIntro(false);
+            if (openCamera) setMacroOpen(true);
+          }}
+        />
+      )}
       <div className={showIntro === false ? "relative min-h-screen overflow-hidden" : "hidden"}>
         <BackgroundGlow />
         <div className="relative mx-auto max-w-xl px-5 pb-24 pt-8">

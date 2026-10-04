@@ -130,6 +130,15 @@ export const translations = {
         "Guarda, compara y exporta tu informe cuando quieras.",
       ],
       cta: "Empezar a tasar",
+      cameraPermissionTitle: "Permite el acceso a la cámara",
+      cameraPermissionBody:
+        "Lume necesita la cámara para fotografiar el objeto que quieres tasar.",
+      cameraPrivacy: "Las fotos solo se usan para realizar tu tasación.",
+      cameraAllow: "Permitir cámara",
+      cameraRequesting: "Solicitando permiso…",
+      cameraPermissionDenied:
+        "No se pudo acceder a la cámara. Puedes intentarlo de nuevo o continuar y elegir fotos de la galería.",
+      continueWithoutCamera: "Continuar con la galería",
       footer: "©2026 FMEDIAG - Lume v1.0",
     },
   },
@@ -262,6 +271,15 @@ export const translations = {
         "Save, compare and export your report whenever you like.",
       ],
       cta: "Start appraising",
+      cameraPermissionTitle: "Allow camera access",
+      cameraPermissionBody:
+        "Lume needs the camera to photograph the item you want to appraise.",
+      cameraPrivacy: "Photos are only used to complete your appraisal.",
+      cameraAllow: "Allow camera",
+      cameraRequesting: "Requesting permission…",
+      cameraPermissionDenied:
+        "Camera access was unavailable. Try again or continue and choose photos from your gallery.",
+      continueWithoutCamera: "Continue with gallery",
       footer: "©2026 FMEDIAG - Lume v1.0",
     },
   },

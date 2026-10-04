@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { Sparkles, Globe, Camera, Layers, Rocket } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Sparkles, Globe, Camera, Layers, Rocket, ShieldCheck, Images } from "lucide-react";
 import { translations, type Lang } from "@/lib/i18n";
+import { Button } from "@/components/ui/button";
 
 function useLangState(): [Lang, (l: Lang) => void] {
   const [lang, setLang] = useState<Lang>("es");
@@ -50,17 +52,39 @@ function BackgroundGlow() {
 /** Clave de localStorage usada para no volver a mostrar la intro tras la primera visita. */
 export const INTRO_SEEN_KEY = "lume:introSeen";
 
-export function IntroScreen({ onStart }: { onStart: () => void }) {
+export function IntroScreen({ onStart }: { onStart: (openCamera: boolean) => void }) {
   const [lang, setLang] = useLangState();
+  const [permissionStep, setPermissionStep] = useState(false);
+  const [requesting, setRequesting] = useState(false);
+  const [permissionDenied, setPermissionDenied] = useState(false);
   const t = translations[lang];
 
-  function handleStart() {
+  function finishIntro(openCamera: boolean) {
     try {
       localStorage.setItem(INTRO_SEEN_KEY, "1");
     } catch {
       // localStorage no disponible (modo privado, etc.) — igualmente dejamos pasar.
     }
-    onStart();
+    onStart(openCamera);
+  }
+
+  async function requestCameraPermission() {
+    setRequesting(true);
+    setPermissionDenied(false);
+
+    try {
+      if (!navigator.mediaDevices?.getUserMedia) throw new Error("camera-unavailable");
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false,
+      });
+      stream.getTracks().forEach((track) => track.stop());
+      finishIntro(true);
+    } catch {
+      setPermissionDenied(true);
+    } finally {
+      setRequesting(false);
+    }
   }
 
   return (
@@ -127,19 +151,67 @@ export function IntroScreen({ onStart }: { onStart: () => void }) {
 
         <div className="mt-10 flex-1" />
 
-        <button
-          onClick={handleStart}
-          className="glass-crystal group flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-4 text-sm font-semibold text-primary shadow-glow transition hover:scale-[1.02]"
+        <Button
+          onClick={() => setPermissionStep(true)}
+          className="glass-crystal group h-auto w-full rounded-2xl px-4 py-4 text-sm font-semibold text-primary shadow-glow transition hover:scale-[1.02] hover:bg-transparent"
         >
           <Camera className="h-5 w-5 transition group-hover:scale-110" />
           {t.intro.cta}
           <Rocket className="h-4 w-4 transition group-hover:translate-x-0.5" />
-        </button>
+        </Button>
 
         <p className="mt-6 text-center text-[10px] uppercase tracking-[0.15em] text-muted-foreground/70">
           {t.intro.footer}
         </p>
       </div>
+
+      {permissionStep && (
+        <div className="absolute inset-0 z-20 flex items-end bg-background/70 p-4 backdrop-blur-sm sm:items-center sm:justify-center">
+          <section
+            className="glass-crystal w-full max-w-md rounded-3xl p-6 text-center"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="camera-permission-title"
+          >
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-primary/40 bg-primary/10 shadow-glow">
+              <Camera className="h-7 w-7 text-primary" />
+            </div>
+            <h2 id="camera-permission-title" className="mt-5 text-xl font-semibold text-gradient-gold">
+              {t.intro.cameraPermissionTitle}
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              {permissionDenied
+                ? t.intro.cameraPermissionDenied
+                : t.intro.cameraPermissionBody}
+            </p>
+            {!permissionDenied && (
+              <div className="mt-4 flex items-center justify-center gap-2 text-xs text-primary">
+                <ShieldCheck className="h-4 w-4" />
+                <span>{t.intro.cameraPrivacy}</span>
+              </div>
+            )}
+            <div className="mt-6 grid gap-3">
+              <Button
+                onClick={requestCameraPermission}
+                disabled={requesting}
+                className="h-12 rounded-2xl bg-gradient-crystal text-primary-foreground shadow-glow"
+              >
+                <Camera className="h-5 w-5" />
+                {requesting ? t.intro.cameraRequesting : t.intro.cameraAllow}
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => finishIntro(false)}
+                disabled={requesting}
+                className="h-11 rounded-2xl text-muted-foreground hover:bg-primary/10 hover:text-primary"
+              >
+                <Images className="h-4 w-4" />
+                {t.intro.continueWithoutCamera}
+              </Button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
