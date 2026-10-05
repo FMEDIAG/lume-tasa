@@ -134,11 +134,11 @@ function isCoinValuation(category: string, context: string): boolean {
 
 const CoinIdSchema = z.object({
   title: z.string().max(200),
-  country: z.string().max(80).optional().default(""),
-  denomination: z.string().max(80).optional().default(""),
-  year: z.string().max(40).optional().default(""),
-  mint: z.string().max(40).optional().default(""),
-  seriesName: z.string().max(160).optional().default(""),
+  country: z.coerce.string().max(80).optional().default(""),
+  denomination: z.coerce.string().max(80).optional().default(""),
+  year: z.coerce.string().max(40).optional().default(""),
+  mint: z.coerce.string().max(40).optional().default(""),
+  seriesName: z.coerce.string().max(160).optional().default(""),
   metal: z.enum([
     "gold",
     "silver",
@@ -151,8 +151,8 @@ const CoinIdSchema = z.object({
   estimatedFineWeightG: z.number().finite().nonnegative().max(2000).nullable().optional(),
   platedOrFilled: z.boolean().optional().default(false),
   certifier: z.enum(["NGC", "PCGS", "ANACS", "ICG", "none", "unknown"]) as z.ZodType<CoinCertifier>,
-  grade: z.string().max(40).nullable().optional(),
-  certNumber: z.string().max(40).nullable().optional(),
+  grade: z.coerce.string().max(40).nullable().optional(),
+  certNumber: z.coerce.string().max(40).nullable().optional(),
   isLikelyReproduction: z.boolean().optional().default(false),
   marketType: z
     .enum(["bullion", "numismatic", "unknown"])
