@@ -30,10 +30,6 @@ Se consultan bases públicas y comparables globales.
 
 Se genera una tasación estimada, con rango de valor y nivel de confianza.
 
-Se muestra un informe claro exportable.
-
-Si usas el contexto, mejor conciso pero detallado, así afinará la tasación.
-
-Las donaciones se realizan directamente en [Liberapay/FMEDIAG](https://liberapay.com/FMEDIAG/donate), donde cada usuario elige el importe. Lume solo abre el enlace y no recoge ni almacena datos de pago.
+Se muestra un informe claro y exportable.
 
 ©2026 FMEDIAG - Lume v1.0

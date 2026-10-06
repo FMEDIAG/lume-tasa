@@ -2,22 +2,9 @@ import { toast } from "sonner";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  Camera,
-  Images,
-  Sparkles,
-  History,
-  Trash2,
-  Save,
-  Check,
-  Globe,
-  Focus,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { Camera, Images, Sparkles, History, Trash2, Save, Check, Globe, Focus, Heart } from "lucide-react";
 import { CameraCapture } from "@/components/CameraCapture";
 import { IntroScreen, INTRO_SEEN_KEY } from "@/components/IntroScreen";
-import { LIBERAPAY_DONATION_URL } from "@/lib/donation";
 
 import { valuateItem } from "@/lib/valuate.functions";
 import { detectCategory } from "@/lib/detect-category.functions";
@@ -131,7 +118,6 @@ function Index() {
   const [suggestedConfidence, setSuggestedConfidence] = useState<number | null>(null);
   const [candidates, setCandidates] = useState<Array<{ category: string; confidence: number }>>([]);
   const [detecting, setDetecting] = useState(false);
-  const [detectError, setDetectError] = useState<string | null>(null);
   const detectedForRef = useRef<string | null>(null);
 
   // Auto-detect category from the latest photo whenever photos change.
@@ -141,14 +127,12 @@ function Index() {
       setSuggested(null);
       setSuggestedConfidence(null);
       setCandidates([]);
-      setDetectError(null);
       detectedForRef.current = null;
       return;
     }
     if (detectedForRef.current === latest.id) return;
     detectedForRef.current = latest.id;
     setDetecting(true);
-    setDetectError(null);
     detect({ data: { dataUrl: latest.dataUrl, lang } })
       .then((r) => {
         setSuggested(r.category);
@@ -159,21 +143,10 @@ function Index() {
           setCategory(r.category);
         }
       })
-      .catch((err) => {
+      .catch(() => {
         setSuggested(null);
         setSuggestedConfidence(null);
         setCandidates([]);
-        // Surface the failure instead of leaving the UI silently idle.
-        const raw = err instanceof Error ? err.message : String(err ?? "");
-        setDetectError(
-          /not available|misconfigur/i.test(raw)
-            ? lang === "es"
-              ? "La IA no está configurada en el servidor. Elige la categoría manualmente."
-              : "AI is not configured on the server. Pick the category manually."
-            : lang === "es"
-              ? "No se pudo detectar la categoría automáticamente. Elige una manualmente."
-              : "Could not auto-detect the category. Pick one manually.",
-        );
       })
       .finally(() => setDetecting(false));
   }, [photos, lang, detect, category]);
@@ -270,7 +243,14 @@ function Index() {
 
   return (
     <>
-      {showIntro && <IntroScreen onStart={() => setShowIntro(false)} />}
+      {showIntro && (
+        <IntroScreen
+          onStart={(openCamera) => {
+            setShowIntro(false);
+            if (openCamera) setMacroOpen(true);
+          }}
+        />
+      )}
       <div className={showIntro === false ? "relative min-h-screen overflow-hidden" : "hidden"}>
         <BackgroundGlow />
         <div className="relative mx-auto max-w-xl px-5 pb-24 pt-8">
@@ -400,12 +380,7 @@ function Index() {
                   {detecting && (
                     <p className="mt-1 text-[10px] text-muted-foreground/80">✨ {t.detecting}</p>
                   )}
-                  {!detecting && detectError && (
-                    <p className="mt-1 text-[10px] text-destructive/90" role="status">
-                      {detectError}
-                    </p>
-                  )}
-                  {!detecting && !detectError && suggested && suggested in t.categories && (
+                  {!detecting && suggested && suggested in t.categories && (
                     <div className="mt-1.5 space-y-1">
                       <p className="text-[10px] text-primary/80">
                         ✨ {t.suggested}: {t.categories[suggested as keyof typeof t.categories]}
@@ -469,13 +444,13 @@ function Index() {
                 </div>
               </div>
 
-              <textarea
-                value={context}
-                onChange={(e) => setContext(e.target.value)}
-                placeholder={t.context}
-                rows={2}
-                className="mt-3 w-full resize-none rounded-xl border border-primary/20 bg-input px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-ring/40"
-              />
+                <textarea
+                  value={context}
+                  onChange={(e) => setContext(e.target.value)}
+                  placeholder={t.context}
+                  rows={2}
+                  className="mt-3 w-full resize-none rounded-xl border border-primary/20 bg-input px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-ring/40"
+                />
 
               <button
                 disabled={!canValuate}
@@ -495,38 +470,23 @@ function Index() {
               {photos.length < 1 && (
                 <p className="mt-3 text-center text-xs text-muted-foreground">{t.minPhotos}</p>
               )}
-              {photos.length >= 1 && context.trim().length === 0 && (
-                <p className="mt-3 text-center text-xs text-muted-foreground">{t.contextOptional}</p>
-              )}
-              {error && (
-                <div className="mt-3 text-center">
-                  <p className="text-sm text-destructive">{error}</p>
-                </div>
-              )}
+              {error && <p className="mt-3 text-center text-sm text-destructive">{error}</p>}
               <p className="mt-6 text-center text-[11px] text-muted-foreground/70">{t.poweredBy}</p>
-              <a
-                href={LIBERAPAY_DONATION_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mx-auto mt-4 inline-flex rounded"
-                aria-label={t.donate}
+              <Link
+                to="/apoyar"
+                search={{ step: undefined }}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/30 glass-crystal px-6 py-3 text-sm font-semibold text-primary transition hover:shadow-glow"
               >
-                <img
-                  src="https://liberapay.com/assets/widgets/donate.svg"
-                  alt=""
-                  width={83}
-                  height={30}
-                />
-              </a>
-              <p className="mt-2 text-center text-xs text-muted-foreground">{t.donateHint}</p>
-              <p className="mt-2 text-center text-xs font-bold text-muted-foreground/80">
-                ©2026 FMEDIAG - Lume v1.0
-              </p>
+                <Heart className="h-4 w-4" /> {t.donate}
+              </Link>
               <img
                 src="/fmediag-logo.png"
                 alt="FMEDIAG"
                 className="mx-auto mt-3 h-9 w-9 rounded-full ring-1 ring-primary/30"
               />
+              <p className="mt-2 text-center text-xs font-bold text-muted-foreground/80">
+                ©2026 FMEDIAG - Lume v1.0
+              </p>
             </section>
           )}
 
@@ -589,7 +549,6 @@ function ResultCard({
   onReset: () => void;
   onHistory: () => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const confColor = useMemo(() => {
     if (result.confidence === "high") return "text-primary";
     if (result.confidence === "medium") return "text-accent";
@@ -605,7 +564,7 @@ function ResultCard({
             alt=""
             className="h-20 w-20 shrink-0 rounded-xl object-cover ring-1 ring-primary/40"
           />
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0">
             <p className="text-xs uppercase tracking-widest text-muted-foreground">{t.result}</p>
             <h2 className="mt-1 text-xl font-semibold text-gradient-gold">{result.title}</h2>
             <p className={`mt-1 text-xs font-medium uppercase ${confColor}`}>
@@ -614,13 +573,6 @@ function ResultCard({
                 result.confidence}
             </p>
           </div>
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-crystal text-primary-foreground shadow-glow transition hover:scale-105"
-            aria-label={expanded ? "Colapsar" : "Expandir"}
-          >
-            {expanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-          </button>
         </div>
 
         <div className="mt-5 grid grid-cols-2 gap-3">
@@ -628,50 +580,46 @@ function ResultCard({
           <PriceCard label="USD" symbol="$" min={result.priceUsdMin} max={result.priceUsdMax} />
         </div>
 
-        {expanded && (
-          <>
-            <div className="mt-5">
-              <p className="text-xs uppercase tracking-wider text-muted-foreground">
-                {t.identification}
-              </p>
-              <p className="mt-1 text-sm leading-relaxed text-foreground/90">{result.identification}</p>
+        <div className="mt-5">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">
+            {t.identification}
+          </p>
+          <p className="mt-1 text-sm leading-relaxed text-foreground/90">{result.identification}</p>
+        </div>
+
+        {result.notes && (
+          <div className="mt-4">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">{t.notes}</p>
+            {extractPricePerSqm(result.notes).length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {extractPricePerSqm(result.notes).map((p) => (
+                  <span
+                    key={p}
+                    className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold tabular-nums leading-tight text-primary"
+                  >
+                    {p}
+                  </span>
+                ))}
+              </div>
+            )}
+            <p className="mt-1 text-sm leading-relaxed text-foreground/80">{result.notes}</p>
+          </div>
+        )}
+
+        {result.sources && result.sources.length > 0 && (
+          <div className="mt-4">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">{t.sources}</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {result.sources.map((s, i) => (
+                <span
+                  key={i}
+                  className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] text-primary"
+                >
+                  {s}
+                </span>
+              ))}
             </div>
-
-            {result.notes && (
-              <div className="mt-4">
-                <p className="text-xs uppercase tracking-wider text-muted-foreground">{t.notes}</p>
-                {extractPricePerSqm(result.notes).length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {extractPricePerSqm(result.notes).map((p) => (
-                      <span
-                        key={p}
-                        className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-semibold tabular-nums leading-tight text-primary"
-                      >
-                        {p}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <p className="mt-1 text-sm leading-relaxed text-foreground/80">{result.notes}</p>
-              </div>
-            )}
-
-            {result.sources && result.sources.length > 0 && (
-              <div className="mt-4">
-                <p className="text-xs uppercase tracking-wider text-muted-foreground">{t.sources}</p>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {result.sources.map((s, i) => (
-                    <span
-                      key={i}
-                      className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] text-primary"
-                    >
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
+          </div>
         )}
       </div>
 
