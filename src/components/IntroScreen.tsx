@@ -73,10 +73,16 @@ export function IntroScreen({ onStart }: { onStart: (openCamera: boolean) => voi
 
     try {
       if (!navigator.mediaDevices?.getUserMedia) throw new Error("camera-unavailable");
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" } },
-        audio: false,
-      });
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" } },
+          audio: false,
+        });
+      } catch (err) {
+        if ((err as DOMException)?.name === "NotAllowedError") throw err;
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      }
       stream.getTracks().forEach((track) => track.stop());
       finishIntro(true);
     } catch {

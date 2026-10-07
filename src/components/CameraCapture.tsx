@@ -37,17 +37,56 @@ export function CameraCapture({ onCapture, onClose, t }: CameraCaptureProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  async function openStream(): Promise<MediaStream> {
+    if (!navigator.mediaDevices?.getUserMedia) throw new DOMException("", "NotSupportedError");
+    const attempts: MediaStreamConstraints[] = [
+      { video: { facingMode: { ideal: "environment" }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false },
+      { video: { facingMode: { ideal: "environment" } }, audio: false },
+      { video: true, audio: false },
+    ];
+    let lastErr: unknown;
+    for (let round = 0; round < 2; round++) {
+      for (const c of attempts) {
+        try {
+          return await navigator.mediaDevices.getUserMedia(c);
+        } catch (err) {
+          lastErr = err;
+          const name = (err as DOMException)?.name;
+          // Permiso denegado o no soportado: no tiene sentido reintentar.
+          if (name === "NotAllowedError" || name === "SecurityError" || name === "NotSupportedError") throw err;
+        }
+      }
+      // La cámara puede seguir ocupada justo tras liberar la prueba de permiso.
+      await new Promise((r) => setTimeout(r, 600));
+    }
+    throw lastErr;
+  }
+
+  function friendlyError(err: unknown): string {
+    const name = (err as DOMException)?.name;
+    if (name === "NotAllowedError" || name === "SecurityError")
+      return label(
+        "Permiso de cámara denegado. Actívalo en Ajustes del navegador → Permisos del sitio → Cámara, o usa la galería.",
+        "Camera permission denied. Enable it in browser Settings → Site permissions → Camera, or use the gallery.",
+      );
+    if (name === "NotFoundError" || name === "OverconstrainedError")
+      return label("No se encontró ninguna cámara en este dispositivo.", "No camera was found on this device.");
+    if (name === "NotReadableError" || name === "AbortError")
+      return label(
+        "La cámara está siendo usada por otra app. Ciérrala e inténtalo de nuevo.",
+        "The camera is in use by another app. Close it and try again.",
+      );
+    if (name === "NotSupportedError")
+      return label("Este navegador no permite usar la cámara aquí.", "This browser can't use the camera here.");
+    return label("No se pudo acceder a la cámara.", "Could not access the camera.");
+  }
+
   async function startCamera() {
+    setError(null);
+    setIsStreaming(false);
+    streamRef.current?.getTracks().forEach((track) => track.stop());
     try {
-      setError(null);
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: "environment" },
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        },
-        audio: false,
-      });
+      const stream = await openStream();
       streamRef.current = stream;
 
       const video = videoRef.current;
@@ -58,8 +97,8 @@ export function CameraCapture({ onCapture, onClose, t }: CameraCaptureProps) {
         } catch {
           /* autoplay manejado por atributos */
         }
-        setIsStreaming(true);
       }
+      setIsStreaming(true);
 
       const track = stream.getVideoTracks()[0];
       const caps: any = (track as any)?.getCapabilities?.() ?? {};
@@ -70,11 +109,7 @@ export function CameraCapture({ onCapture, onClose, t }: CameraCaptureProps) {
           : Boolean(caps.focusDistance)
       );
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "No se pudo acceder a la cámara / Could not access camera"
-      );
+      setError(friendlyError(err));
     }
   }
 
@@ -206,12 +241,20 @@ export function CameraCapture({ onCapture, onClose, t }: CameraCaptureProps) {
           <div className="absolute inset-0 flex items-center justify-center bg-background px-6">
             <div className="glass-crystal rounded-2xl p-5 text-center">
               <p className="text-sm font-semibold text-primary">{error}</p>
-              <button
-                onClick={onClose}
-                className="mt-4 rounded-xl bg-gradient-crystal px-4 py-2 text-sm font-semibold text-primary-foreground"
-              >
-                {label("Cerrar", "Close")}
-              </button>
+              <div className="mt-4 flex justify-center gap-2">
+                <button
+                  onClick={startCamera}
+                  className="rounded-xl bg-gradient-crystal px-4 py-2 text-sm font-semibold text-primary-foreground"
+                >
+                  {label("Reintentar", "Retry")}
+                </button>
+                <button
+                  onClick={onClose}
+                  className="glass-crystal rounded-xl px-4 py-2 text-sm font-semibold text-muted-foreground"
+                >
+                  {label("Cerrar", "Close")}
+                </button>
+              </div>
             </div>
           </div>
         )}
