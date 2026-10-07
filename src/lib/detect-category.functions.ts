@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { setResponseStatus } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { chatCompletion, isAllowedOrigin } from "@/lib/lume-ai";
-import { clientIp, requestOriginHost } from "@/lib/ai-guard";
+import { clientIp, requestOriginHost } from "@/lib/lume-ai";
 
 const MAX_PHOTO_CHARS = 1_500_000;
 
